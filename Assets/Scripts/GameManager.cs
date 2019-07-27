@@ -1,11 +1,13 @@
 ﻿/* Unity 3D program that displays multiple interactive instances of the Knapsack Problem.
  * 
+ * Optimal resolution 1024x768. Future users of this program should consider updating the code to suit higher resolution displays.
+ * 
  * Input files are stored in ./StreamingAssets/Input
  * User responses and other data are stored in ./StreamingAssets/Output
  * 
  * Based on Knapsack and TSP code written by Pablo Franco
- * Key modifications (July 2019) by Anthony Hsu include:
- * click "Start" button to begin; deleted various unused assets; added StreamingAssets folder.
+ * Modifications (July 2019) by Anthony Hsu include:
+ * click "Start" button to begin; items clickable; deleted various unused assets and functions; added StreamingAssets folder.
  * 
  * Honours students should make further changes to suit their projects.
  */
@@ -19,8 +21,7 @@ using System;
 using System.IO;
 using System.Linq;
 using Random = UnityEngine.Random;
-//using UnityEditor;
-//using System.Diagnostics;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -43,7 +44,7 @@ public class GameManager : MonoBehaviour
     public static float totalTime;
 
     //Time spent at the instance
-    public static float timeSkip;
+    public static float timeTaken;
 
     //Current trial initialization
     public static int trial = 0;
@@ -52,34 +53,29 @@ public class GameManager : MonoBehaviour
     public static int block = 0;
 
     //Total trial (As if no blocks were used)
-    public static int TotalTrials = 0;
+    public static int TotalTrials;
 
     private static bool showTimer;
 
     //Modifiable Variables:
     //Minimum and maximum for randomized interperiod Time
-    public static float timeRest1min = 5;
-    public static float timeRest1max = 9;
+    public static float timeRest1min;
+    public static float timeRest1max;
 
     //InterBlock rest time
-    public static float timeRest2 = 10;
-
-    //public static float timeRest1;
+    public static float timeRest2;
 
     //Time given for each trial (The total time the items are shown -With and without the question-)
-    public static float timeQuestion = 10;
-
-    //Time given for answering
-    public static float timeAnswer = 3;
+    public static float timeQuestion;
 
     //Total number of trials in each block
-    private static int numberOfTrials = 30;
+    private static int numberOfTrials;
 
     //Total number of blocks
-    private static int numberOfBlocks = 3;
+    private static int numberOfBlocks;
 
     //Number of instance file to be considered. From i1.txt to i_.txt..
-    public static int numberOfInstances = 3;
+    public static int numberOfInstances;
 
     //The order of the instances to be presented
     public static int[] instanceRandomization;
@@ -87,11 +83,26 @@ public class GameManager : MonoBehaviour
     //The order of the left/right No/Yes randomization
     public static int[] buttonRandomization;
 
+    // Skip button in case user does not want a break
+    public static Button skipButton;
+
+    // A list of floats to record participant performance
+    // Performance should always be equal to or greater than 1.
+    // Due to the way it's calculated (participant answer/optimal solution), performance closer to 1 is better.
+    public static List<double> perf = new List<double>();
+    public static double performance;
+    public static List<double> paylist = new List<double>();
+    public static double pay;
+
+    // Keep track of total payment
+    // Default value is the show up fee
+    public static double payAmount = 8.00;
+
     //This is the string that will be used as the file name where the data is stored. DeCurrently the date-time is used.
-    public static string participantID = "Empty";
+    public static string participantID;
 
     //This is the randomisation number (#_param2.txt that is to be used for oder of instances for this participant)
-    public static string randomisationID = "Empty";
+    public static string randomisationID;
 
     public static string dateID = @System.DateTime.Now.ToString("dd MMMM, yyyy, HH-mm");
 
@@ -102,7 +113,7 @@ public class GameManager : MonoBehaviour
 
     //Input and Outout Folders with respect to the Application.dataPath;
     private static string inputFolder = "/StreamingAssets/Input/";
-    private static string inputFolderKSInstances = "/StreamingAssets/Input/KPInstances/";
+    private static string inputFolderKPInstances = "/StreamingAssets/Input/KPInstances/";
     private static string outputFolder = "/StreamingAssets/Output/";
 
     // Stopwatch to calculate time of events.
@@ -110,9 +121,18 @@ public class GameManager : MonoBehaviour
     // Time at which the stopwatch started. Time of each event is calculated according to this moment.
     private static string initialTimeStamp;
 
+    // current value
+    public static int valueValue;
+
+    // current weight
+    public static int weightValue;
+
+
+    // binary variable to keep track of whether the submission was due to time out or user choice
+    public static int timedOut;
 
     //A structure that contains the parameters of each instance
-    public struct KSInstance
+    public struct KPInstance
     {
         public int capacity;
         public int profit;
@@ -127,7 +147,7 @@ public class GameManager : MonoBehaviour
     }
 
     //An array of all the instances to be uploaded form .txt files.
-    public static KSInstance[] ksinstances;// = new KSInstance[numberOfInstances];
+    public static KPInstance[] kpinstances;
 
     // Use this for initialization
     void Awake()
@@ -158,51 +178,45 @@ public class GameManager : MonoBehaviour
     //Initializes the scene. One scene is setup, other is trial, other is Break....
     void InitGame()
     {
-
         /*
 		Scene Order: escena
 		0=setup
 		1=trial game
-		2=trial game answer
-		3= intertrial rest
-		4= interblock rest
-		5= end
+		2= intertrial rest
+		3= interblock rest
+		4= end
 		*/
         Scene scene = SceneManager.GetActiveScene();
+
         escena = scene.name;
-        Debug.Log("escena" + escena);
+
+        Debug.Log("Current Scene" + escena);
+
         if (escena == "SetUp")
         {
             //Only uploads parameters and instances once.
             block++;
-            randomizeButtons();
             boardScript.setupInitialScreen();
-
         }
+
         else if (escena == "Trial")
         {
             trial++;
             TotalTrials = trial + (block - 1) * numberOfTrials;
             showTimer = true;
-            boardScript.SetupScene("Trial");
+            boardScript.SetupScene();
 
             tiempo = timeQuestion;
             totalTime = timeQuestion;
+        }
 
-        }
-        else if (escena == "TrialAnswer")
-        {
-            showTimer = true;
-            boardScript.SetupScene("TrialAnswer");
-            tiempo = timeAnswer;
-            totalTime = timeAnswer;
-        }
         else if (escena == "InterTrialRest")
         {
             showTimer = false;
             tiempo = Random.Range(timeRest1min, timeRest1max);
             totalTime = tiempo;
         }
+
         else if (escena == "InterBlockRest")
         {
             trial = 0;
@@ -210,10 +224,6 @@ public class GameManager : MonoBehaviour
             showTimer = true;
             tiempo = timeRest2;
             totalTime = tiempo;
-            //Debug.Log ("TiempoRest=" + tiempo);
-
-            randomizeButtons();
-            //SceneManager.LoadScene (1);
         }
 
     }
@@ -225,24 +235,6 @@ public class GameManager : MonoBehaviour
         if (escena != "SetUp")
         {
             startTimer();
-            pauseManager();
-        }
-    }
-
-    //To pause press alt+p
-    //Pauses/Unpauses the game. Unpausing take syou directly to next trial
-    //Warning! When Unpausing the following happens:
-    //If paused/unpaused in scene 1 or 2 (while items are shown or during answer time) then saves the trialInfo with an error: "pause" without information on the items selected.
-    //If paused/unpaused on ITI or IBI then it generates a new row in trial Info with an error ("pause"). i.e. there are now 2 rows for the trial.
-    private void pauseManager()
-    {
-        if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKeyDown(KeyCode.P))
-        {
-            Time.timeScale = (Time.timeScale == 1) ? 0 : 1;
-            if (Time.timeScale == 1)
-            {
-                errorInScene("Pause");
-            }
         }
     }
 
@@ -250,19 +242,17 @@ public class GameManager : MonoBehaviour
     //If the file doesn't exist it creates it. Otherwise it adds on lines to the existing file.
     //Each line in the File has the following structure: "trial;answer;timeSpent".
     // itemsSelected in the final solutions (irrespective if it was submitted); xycorrdinates; Error message if any.".
-    public static void save(int answer, float timeSpent, int randomYes, string error)
+    public static void save(int answer, float timeSpent, string error)
     {
-
-        //string xyCoordinates = instance.boardScript.getItemCoordinates ();//BoardManager.getItemCoordinates ();
         string xyCoordinates = BoardManager.getItemCoordinates();
 
         //Get the instance n umber for this trial and add 1 because the instanceRandomization is linked to array numbering in C#, which starts at 0;
         int instanceNum = instanceRandomization[TotalTrials - 1] + 1;
 
-        int solutionQ = ksinstances[instanceNum - 1].solution;
+        int solutionQ = kpinstances[instanceNum - 1].solution;
         int correct = (solutionQ == answer) ? 1 : 0;
 
-        string dataTrialText = block + ";" + trial + ";" + answer + ";" + correct + ";" + timeSpent + ";" + randomYes + ";" + instanceNum + ";" + xyCoordinates + ";"
+        string dataTrialText = block + ";" + trial + ";" + answer + ";" + correct + ";" + timeSpent + ";" + instanceNum + ";" + xyCoordinates + ";"
             + error;
 
         string[] lines = { dataTrialText };
@@ -317,10 +307,8 @@ public class GameManager : MonoBehaviour
         lines3[1] = "instanceNumber" + ";c" + ";p" + ";w" + ";v" + ";id" + ";type" + ";sol";
         int l = 2;
         int ksn = 1;
-        foreach (KSInstance ks in ksinstances)
+        foreach (KPInstance ks in kpinstances)
         {
-            //Without instance type and problem ID:
-            //lines [l] = "Instance:" + ksn + ";c=" + ks.capacity + ";p=" + ks.profit + ";w=" + string.Join (",", ks.weights.Select (p => p.ToString ()).ToArray ()) + ";v=" + string.Join (",", ks.values.Select (p => p.ToString ()).ToArray ());
             //With instance type and problem ID
             lines3[l] = ksn + ";" + ks.capacity + ";" + ks.profit + ";" + string.Join(",", ks.weights.Select(p => p.ToString()).ToArray()) + ";" + string.Join(",", ks.values.Select(p => p.ToString()).ToArray())
                 + ";" + ks.id + ";" + ks.type + ";" + ks.solution;
@@ -337,7 +325,7 @@ public class GameManager : MonoBehaviour
         // Trial Info file headers
         string[] lines = new string[2];
         lines[0] = "PartcipantID:" + participantID;
-        lines[1] = "block;trial;answer;correct;timeSpent;randomYes(1=Left:No/Right:Yes);instanceNumber;xyCoordinates;error";
+        lines[1] = "block;trial;answer;correct;timeSpent;instanceNumber;xyCoordinates;error";
         using (StreamWriter outputFile = new StreamWriter(folderPathSave + identifierName + "TrialInfo.txt", true))
         {
             foreach (string line in lines)
@@ -356,6 +344,37 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Saves the time stamp of every click made on the items 
+    // block ; trial ; clicklist (i.e. item number ; itemIn? (1: selcting; 0:deselecting; 2: click invalid; 3: reset) ; time of the click with respect to the begining of the trial)
+    public static void SaveClicks(List<BoardManager.Click> itemClicks)
+    {
+        string folderPathSave = Application.dataPath + outputFolder;
+
+        string[] lines = new string[itemClicks.Count];
+        int i = 0;
+        foreach (BoardManager.Click click in itemClicks)
+        {
+            lines[i] = block + ";" + trial + ";" + click.ItemNumber + ";" + click.State + ";" + click.time;
+            i++;
+        }
+
+        using (StreamWriter outputFile = new StreamWriter(folderPathSave + identifierName + "Clicks.txt", true))
+        {
+            WriteToFile(outputFile, lines);
+        }
+
+    }
+
+    // Helper function to write lines to an outputfile
+    private static void WriteToFile(StreamWriter outputFile, string[] lines)
+    {
+        foreach (string line in lines)
+        {
+            outputFile.WriteLine(line);
+        }
+
+        outputFile.Close();
+    }
     /*
 	 * Loads all of the instances to be uploaded form .txt files. Example of input file:
 	 * Name of the file: i3.txt
@@ -365,12 +384,12 @@ public class GameManager : MonoBehaviour
 	 * capacity:15
 	 * profit:16
 	 *
-	 * The instances are stored as ksinstances structures in the array of structures: ksinstances
+	 * The instances are stored as kpinstances structures in the array of structures: kpinstances
 	 */
     public static void loadKPInstance()
     {
-        string folderPathLoad = Application.dataPath + inputFolderKSInstances;
-        ksinstances = new KSInstance[numberOfInstances];
+        string folderPathLoad = Application.dataPath + inputFolderKPInstances;
+        kpinstances = new KPInstance[numberOfInstances];
 
         for (int k = 1; k <= numberOfInstances; k++)
         {
@@ -411,18 +430,18 @@ public class GameManager : MonoBehaviour
             dict.TryGetValue("profit", out profitS);
             dict.TryGetValue("solution", out solutionS);
 
-            ksinstances[k - 1].weights = Array.ConvertAll(weightsS.Substring(1, weightsS.Length - 2).Split(','), int.Parse);
+            kpinstances[k - 1].weights = Array.ConvertAll(weightsS.Substring(1, weightsS.Length - 2).Split(','), int.Parse);
 
-            ksinstances[k - 1].values = Array.ConvertAll(valuesS.Substring(1, valuesS.Length - 2).Split(','), int.Parse);
+            kpinstances[k - 1].values = Array.ConvertAll(valuesS.Substring(1, valuesS.Length - 2).Split(','), int.Parse);
 
-            ksinstances[k - 1].capacity = int.Parse(capacityS);
+            kpinstances[k - 1].capacity = int.Parse(capacityS);
 
-            ksinstances[k - 1].profit = int.Parse(profitS);
+            kpinstances[k - 1].profit = int.Parse(profitS);
 
-            ksinstances[k - 1].solution = int.Parse(solutionS);
+            kpinstances[k - 1].solution = int.Parse(solutionS);
 
-            dict.TryGetValue("problemID", out ksinstances[k - 1].id);
-            dict.TryGetValue("instanceType", out ksinstances[k - 1].type);
+            dict.TryGetValue("problemID", out kpinstances[k - 1].id);
+            dict.TryGetValue("instanceType", out kpinstances[k - 1].type);
 
         }
 
@@ -433,7 +452,7 @@ public class GameManager : MonoBehaviour
     {
         //string folderPathLoad = Application.dataPath.Replace("Assets","") + "DATA/Input/";
         string folderPathLoad = Application.dataPath + inputFolder;
-        string folderPathLoadInstances = Application.dataPath + inputFolderKSInstances;
+        string folderPathLoadInstances = Application.dataPath + inputFolderKPInstances;
         var dict = new Dictionary<string, string>();
 
         try
@@ -511,7 +530,6 @@ public class GameManager : MonoBehaviour
         string timeRest1maxS;
         string timeRest2S;
         string timeQuestionS;
-        string timeAnswerS;
         string numberOfTrialsS;
         string numberOfBlocksS;
         string numberOfInstancesS;
@@ -522,8 +540,6 @@ public class GameManager : MonoBehaviour
         dictionary.TryGetValue("timeRest2", out timeRest2S);
 
         dictionary.TryGetValue("timeQuestion", out timeQuestionS);
-
-        dictionary.TryGetValue("timeAnswer", out timeAnswerS);
 
         dictionary.TryGetValue("numberOfTrials", out numberOfTrialsS);
 
@@ -536,19 +552,15 @@ public class GameManager : MonoBehaviour
         timeRest1max = Convert.ToSingle(timeRest1maxS);
         timeRest2 = Convert.ToSingle(timeRest2S);
         timeQuestion = Int32.Parse(timeQuestionS);
-        timeAnswer = Int32.Parse(timeAnswerS);
         numberOfTrials = Int32.Parse(numberOfTrialsS);
         numberOfBlocks = Int32.Parse(numberOfBlocksS);
         numberOfInstances = Int32.Parse(numberOfInstancesS);
 
         dictionary.TryGetValue("instanceRandomization", out instanceRandomizationS);
-        //If instanceRandomization is not included in the parameters file. It generates a randomization.
-        //		if (!dictionary.ContainsKey("instanceRandomization")){
-        //			RandomizeKSInstances();
-        //		} else{
+
         int[] instanceRandomizationNo0 = Array.ConvertAll(instanceRandomizationS.Substring(1, instanceRandomizationS.Length - 2).Split(','), int.Parse);
         instanceRandomization = new int[instanceRandomizationNo0.Length];
-        //foreach (int i in instanceRandomizationNo0)
+
         for (int i = 0; i < instanceRandomizationNo0.Length; i++)
         {
             instanceRandomization[i] = instanceRandomizationNo0[i] - 1;
@@ -576,40 +588,10 @@ public class GameManager : MonoBehaviour
         BoardManager.totalAreaBill = Int32.Parse(totalAreaBillS);
         BoardManager.totalAreaWeight = Int32.Parse(totalAreaWeightS);
     }
-
-    //Randomizes The Location of the Yes/No button for a whole block.
-    void randomizeButtons()
-    {
-
-        buttonRandomization = new int[numberOfTrials];
-
-        List<int> buttonRandomizationTemp = new List<int>();
-
-        for (int i = 0; i < numberOfTrials; i++)
-        {
-            if (i % 2 == 0)
-            {
-                buttonRandomizationTemp.Add(0);
-            }
-            else
-            {
-                buttonRandomizationTemp.Add(1);
-            }
-        }
-
-        for (int i = 0; i < numberOfTrials; i++)
-        {
-            int randomIndex = Random.Range(0, buttonRandomizationTemp.Count);
-            buttonRandomization[i] = buttonRandomizationTemp[randomIndex];
-            buttonRandomizationTemp.RemoveAt(randomIndex);
-        }
-
-    }
-
+    
     //Takes care of changing the Scene to the next one (Except for when in the setup scene)
-    public static void changeToNextScene(int answer, int randomYes, int skipped)
+    public static void changeToNextScene(int answer, bool skipped)
     {
-        BoardManager.keysON = false;
         if (escena == "SetUp")
         {
             loadParameters();
@@ -619,27 +601,23 @@ public class GameManager : MonoBehaviour
         }
         else if (escena == "Trial")
         {
-            if (skipped == 1)
+            if (skipped == true)
             {
-                timeSkip = timeQuestion - tiempo;
+                timeTaken = timeQuestion - tiempo;
             }
             else
             {
-                timeSkip = timeQuestion;
-            }
-            SceneManager.LoadScene("TrialAnswer");
-        }
-        else if (escena == "TrialAnswer")
-        {
-            save(answer, timeSkip, randomYes, "");
-            if (answer != 2)
-            {
-                saveTimeStamp("ParticipantAnswer");
+                timeTaken = timeQuestion;
             }
             SceneManager.LoadScene("InterTrialRest");
         }
         else if (escena == "InterTrialRest")
         {
+            save(answer, timeTaken, "");
+            if (answer != 2)
+            {
+                saveTimeStamp("ParticipantAnswer");
+            }
             changeToNextTrial();
         }
         else if (escena == "InterBlockRest")
@@ -677,11 +655,9 @@ public class GameManager : MonoBehaviour
     public static void errorInScene(string errorDetails)
     {
         Debug.Log(errorDetails);
-
-        BoardManager.keysON = false;
+        
         int answer = 3;
-        int randomYes = -1;
-        save(answer, timeQuestion, randomYes, errorDetails);
+        save(answer, timeQuestion, errorDetails);
         changeToNextTrial();
     }
 
@@ -708,13 +684,12 @@ public class GameManager : MonoBehaviour
         return stamp;
     }
 
-
     //Updates the timer (including the graphical representation)
     //If time runs out in the trial or the break scene. It switches to the next scene.
     void startTimer()
     {
         tiempo -= Time.deltaTime;
-        //Debug.Log (tiempo);
+
         if (showTimer)
         {
             boardScript.updateTimer();
@@ -723,10 +698,7 @@ public class GameManager : MonoBehaviour
         //When the time runs out:
         if (tiempo < 0)
         {
-            changeToNextScene(BoardManager.answer, BoardManager.randomYes, 0);
+            changeToNextScene(2, false);
         }
-
     }
-
-
 }

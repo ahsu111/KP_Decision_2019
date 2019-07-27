@@ -1,5 +1,5 @@
-timeRest1min:2
-timeRest1max:2
+timeRest1min:0.1
+timeRest1max:0.1
 timeRest2:10
 timeQuestion:25
 timeAnswer:3
