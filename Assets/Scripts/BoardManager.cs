@@ -10,25 +10,33 @@ using Random = UnityEngine.Random;
 // This Script (a component of Game Manager) Initializes the Borad (i.e. screen).
 public class BoardManager : MonoBehaviour
 {
-    //Resoultion width and Height
-    //CAUTION! Modifying this does not modify the Screen resolution. This is related to the unit grid on Unity.
+    // Resoultion width and Height
+    // CAUTION! Modifying this does not modify the Screen resolution.
+    // This is related to the unit grid on Unity.
     public static int resolutionWidth = 800;
     public static int resolutionHeight = 600;
 
-    //Number of Columns and rows of the grid (the possible positions of the items).
+    // Number of Columns and rows of the grid (the possible positions of the items).
     public static int columns = 16;
     public static int rows = 12;
 
-    //The method to be used to place items randomly on the grid.
-    //1. Choose random positions from full grid. It might happen that no placement is found and the trial will be skipped.
-    //2. Choose randomly out of 10 positions. A placement is guaranteed
+    // The method to be used to place items randomly on the grid.
+    // 1. Choose random positions from full grid. It might happen that no placement
+    //    is found and the trial will be skipped.
+    // 2. Choose randomly out of 10 positions. A placement is guaranteed
     public static int randomPlacementType = 1;
 
     //Prefab of the item interface configuration
     public static GameObject KSItemPrefab;
+    public static GameObject WeightLimitPrefab;
 
     //A canvas where all the board is going to be placed
     private GameObject canvas;
+
+
+    // Current counters
+    public Text ValueText;
+    public Text WeightText;
 
     //The possible positions of the items;
     private List<Vector3> gridPositions = new List<Vector3>();
@@ -49,8 +57,8 @@ public class BoardManager : MonoBehaviour
     public Button Reset;
 
     //These variables shouldn't be modified. They just state that the area of the value part of the item and the weight part are assumed to be 1.
-    private static float minAreaBill = 1f;
-    private static float minAreaWeight = 1f;
+    public static float minAreaBill = 1f;
+    public static float minAreaWeight = 1f;
 
     //The total area of all the items. Separated by the value part and the weighy part. A good initialization for this variables is the number of items plus 1.
     public static int totalAreaBill = 8;
@@ -71,8 +79,6 @@ public class BoardManager : MonoBehaviour
         public Vector2 coordWeight2;
         public Vector2 center;
         public int ItemNumber;
-        public int ItemValue;
-        public int ItemWeight;
         public Button ItemButton;
     }
 
@@ -97,11 +103,42 @@ public class BoardManager : MonoBehaviour
     // To keep track of the number of items visited
     public static int itemsvisited = 0;
 
+    // Current Instance number
+    public static int currInstance;
 
+    /// Macro function that initializes the Board
+    public void SetupTrial()
+    {
+        previousitems.Clear();
+        itemClicks.Clear();
+        GameManager.valueValue = 0;
+        GameManager.weightValue = 0;
+        itemsvisited = 0;
 
-    // Current counters
-    public Text ValueText;
-    public Text WeightText;
+        SetKPInstance();
+
+        //If the bool returned by LayoutObjectAtRandom() is false, then retry again:
+        //Destroy all items. Initialize list again and try to place them once more.
+        int nt = 200;
+        bool itemsPlaced = false;
+        while (nt >= 1 && !itemsPlaced)
+        {
+
+            GameObject[] items1 = GameObject.FindGameObjectsWithTag("Item");
+            foreach (GameObject item in items1)
+            {
+                Destroy(item);
+            }
+
+            InitialiseList();
+            itemsPlaced = LayoutObjectAtRandom();
+            nt--;
+        }
+        if (itemsPlaced == false)
+        {
+            GameManager.ErrorInScene("Not enough space to place all items");
+        }
+    }
 
     //This Initializes the GridPositions which are the possible places where the items will be placed.
     void InitialiseList()
@@ -148,40 +185,36 @@ public class BoardManager : MonoBehaviour
                 }
             }
         }
-
-
     }
     
     //Initializes the instance for this trial:
     //1. Sets the question string using the instance (from the .txt files)
     //2. The weight and value vectors are uploaded
     //3. The instance prefab is uploaded
-    void setKPInstance()
+    void SetKPInstance()
     {
-        int randInstance = GameManager.instanceRandomization[GameManager.TotalTrials - 1];
-        question = "$" + GameManager.kpinstances[randInstance].profit + Environment.NewLine + GameManager.kpinstances[randInstance].capacity + "kg?";
+        KSItemPrefab = (GameObject)Resources.Load("KSItem3");
+        WeightLimitPrefab = (GameObject)Resources.Load("BigText");
 
-        ws = GameManager.kpinstances[randInstance].weights;
-        vs = GameManager.kpinstances[randInstance].values;
+        currInstance = GameManager.instanceRandomization[GameManager.TotalTrials - 1];
+        question = "$" + GameManager.kpinstances[currInstance].profit + 
+            Environment.NewLine + GameManager.kpinstances[currInstance].capacity + "kg?";
 
 
+        ws = GameManager.kpinstances[currInstance].weights;
+        vs = GameManager.kpinstances[currInstance].values;
+
+        solution = GameManager.kpinstances[currInstance].solution;
+        
         // Display current value
         ValueText = GameObject.Find("ValueText").GetComponent<Text>();
 
         // Display current weight
         WeightText = GameObject.Find("WeightText").GetComponent<Text>();
 
-
-        previousitems.Clear();
-        itemClicks.Clear();
-        GameManager.valueValue = 0;
-        GameManager.weightValue = 0;
-        GameManager.timedOut = 0;
-        itemsvisited = 0;
         SetTopRowText();
-
-        KSItemPrefab = (GameObject)Resources.Load("KSItem3");
         
+        // set question text
         Text Quest = GameObject.Find("Question").GetComponent<Text>();
         Quest.text = question;
     }
@@ -192,11 +225,12 @@ public class BoardManager : MonoBehaviour
     /// </summary>
     /// <returns>The item structure</returns>
     /// The item placing here is temporary; The real placing is done by the placeItem() method.
-    Item generateItem(int itemNumber, Vector3 randomPosition)
+    Item GenerateItem(int itemNumber, Vector3 randomPosition)
     {
 
         //Instantiates the item and places it.
-        GameObject instance = Instantiate(KSItemPrefab, randomPosition, Quaternion.identity) as GameObject;
+        GameObject instance = Instantiate(KSItemPrefab, randomPosition, 
+            Quaternion.identity) as GameObject;
 
 
         // Display reset button
@@ -206,10 +240,9 @@ public class BoardManager : MonoBehaviour
         canvas = GameObject.Find("Canvas");
         instance.transform.SetParent(canvas.GetComponent<Transform>(), false);
 
-        //Setting the position in a separate line is importatant in order to set it according to global coordinates.
+        // Setting the position in a separate line is importatant in order
+        // to set it according to global coordinates.
         instance.transform.position = randomPosition;
-
-        //instance.GetComponentInChildren<Text>().text = ws[itemNumber]+ "Kg \n $" + vs[itemNumber];
 
         //Gets the subcomponents of the item 
         GameObject bill = instance.transform.Find("Bill").gameObject;
@@ -220,38 +253,49 @@ public class BoardManager : MonoBehaviour
         weight.GetComponentInChildren<Text>().text = "" + ws[itemNumber] + "kg";
 
         // Calculates the area of the Value and Weight sections of the item accrding to approach 2 and then Scales the sections so they match the corresponding area.
-        //Area Approach 2 calculation general idea:
-        //The total area is constant. The area is divided among the items propotional to the ratio between the value (weight) and the sum of all the values (weights) of the items. 
-        //Afterwards a constant area is substracted (or added) from all items in order to make the area of the minimum item equal to the minimum area defined, mantianing the total area constant.
+        // Area Approach 2 calculation general idea:
+        // The total area is constant. The area is divided among the items propotional to the ratio between the value (weight) and the sum of all the values (weights) of the items. 
+        // Afterwards a constant area is substracted (or added) from all items in order to make the area of the minimum item equal to the minimum area defined, mantianing the total area constant.
         // Equations: 1. area_i = c + (totalArea-numberOfItems*c)*(value_i/sum(value_i)) 2. min(area_i)=minimumAreaDefined
-        float adjustmentBill = (minAreaBill - totalAreaBill * vs.Min() / vs.Sum()) / (1 - vs.Length * vs.Min() / vs.Sum());
-        float areaItem1 = adjustmentBill + (totalAreaBill - vs.Length * adjustmentBill) * vs[itemNumber] / vs.Sum();
+        float adjustmentBill = (minAreaBill - totalAreaBill * vs.Min() / vs.Sum()) / 
+            (1 - vs.Length * vs.Min() / vs.Sum());
+        float areaItem1 = adjustmentBill + (totalAreaBill - vs.Length * adjustmentBill) 
+            * vs[itemNumber] / vs.Sum();
         float scale1 = Convert.ToSingle(Math.Sqrt(areaItem1) - 1);
         bill.transform.localScale += new Vector3(scale1, scale1, 0);
 
-        float adjustmentWeight = (minAreaWeight - totalAreaWeight * ws.Min() / ws.Sum()) / (1 - ws.Length * ws.Min() / ws.Sum());
-        float areaItem2 = adjustmentWeight + (totalAreaWeight - ws.Length * adjustmentWeight) * ws[itemNumber] / ws.Sum();
+        float adjustmentWeight = (minAreaWeight - totalAreaWeight * ws.Min() / 
+            ws.Sum()) / (1 - ws.Length * ws.Min() / ws.Sum());
+        float areaItem2 = adjustmentWeight + (totalAreaWeight - ws.Length * 
+            adjustmentWeight) * ws[itemNumber] / ws.Sum();
         float scale2 = Convert.ToSingle(Math.Sqrt(areaItem2) - 1);
         weight.transform.localScale += new Vector3(scale2, scale2, 0);
 
         //Using the scaling results it calculates the coordinates (with respect to the center of the item) of the item.
-        float weightH = weight.GetComponent<BoxCollider2D>().size.y * weight.transform.localScale.y;
-        float weightW = weight.GetComponent<BoxCollider2D>().size.x * weight.transform.localScale.x;
-        float valueH = bill.GetComponent<BoxCollider2D>().size.y * bill.transform.localScale.y;
-        float valueW = bill.GetComponent<BoxCollider2D>().size.x * bill.transform.localScale.x;
-        
-        Item itemInstance = new Item();
-        itemInstance.gameItem = instance;
+        float weightH = weight.GetComponent<BoxCollider2D>().size.y * 
+            weight.transform.localScale.y;
+        float weightW = weight.GetComponent<BoxCollider2D>().size.x * 
+            weight.transform.localScale.x;
+        float valueH = bill.GetComponent<BoxCollider2D>().size.y * 
+            bill.transform.localScale.y;
+        float valueW = bill.GetComponent<BoxCollider2D>().size.x * 
+            bill.transform.localScale.x;
 
-        itemInstance.coordValue1 = new Vector2(-valueW / 2, 0);
-        itemInstance.coordValue2 = new Vector2(valueW / 2, valueH);
-        itemInstance.coordWeight1 = new Vector2(-weightW / 2, 0);
-        itemInstance.coordWeight2 = new Vector2(weightW / 2, -weightH);
-        
+        Item itemInstance = new Item
+        {
+            gameItem = instance,
+
+            coordValue1 = new Vector2(-valueW / 2, 0),
+            coordValue2 = new Vector2(valueW / 2, valueH),
+            coordWeight1 = new Vector2(-weightW / 2, 0),
+            coordWeight2 = new Vector2(weightW / 2, -weightH)
+        };
+
         itemInstance.ItemButton = itemInstance.gameItem.GetComponent<Button>();
         itemInstance.ItemNumber = itemNumber;
 
-        itemInstance.ItemButton.onClick.AddListener(delegate { GameManager.gameManager.boardScript.ClickOnItem(itemInstance); });
+        itemInstance.ItemButton.onClick.AddListener(delegate {
+            GameManager.gameManager.boardScript.ClickOnItem(itemInstance); });
 
         return (itemInstance);
     }
@@ -259,7 +303,7 @@ public class BoardManager : MonoBehaviour
     void ClickOnItem(Item itemToLocate)
     {
         // Check if click is valid
-        Debug.Log("Item Clicked: " + itemToLocate.ItemNumber);
+        // Debug.Log("Item Clicked: " + itemToLocate.ItemNumber);
         Light myLight = itemToLocate.gameItem.GetComponent<Light>();
 
         if (myLight.enabled == true)
@@ -269,7 +313,7 @@ public class BoardManager : MonoBehaviour
         }
         else
         {
-            if (ClickValid() == true)
+            if (ClickValid(itemToLocate) == true)
             {
                 myLight.enabled = true;
                 AddItem(itemToLocate);
@@ -277,13 +321,22 @@ public class BoardManager : MonoBehaviour
         }
     }
 
-    bool ClickValid()
+    bool ClickValid(Item itemToLocate)
     {
+        if ((GameManager.weightValue + ws[itemToLocate.ItemNumber]) > 
+            GameManager.kpinstances[currInstance].capacity)
+        {
+            GameObject heavy = Instantiate(WeightLimitPrefab, new Vector2(0, -344), Quaternion.identity) as GameObject;
+            heavy.transform.SetParent(canvas.GetComponent<Transform>(), false);
+            heavy.GetComponent<Text>().text = "Weight Limit Exceeded";
+            Destroy(heavy, 1);
+            return false;
+        }
         return true;
     }
     
     // Places the item on the input position
-    void placeItem(Item itemToLocate, Vector3 position)
+    void PlaceItem(Item itemToLocate, Vector3 position)
     {
         //Setting the position in a separate line is importatant in order to set it according to global coordinates.
         itemToLocate.gameItem.transform.position = position;
@@ -308,16 +361,17 @@ public class BoardManager : MonoBehaviour
         for (int i = 0; i < objectCount; i++)
         {
             int objectPositioned = 0;
-            Item itemToLocate = generateItem(i, new Vector3(-1000, -1000, -1000));//66: Change to different Layer?
+            Item itemToLocate = GenerateItem(i, new Vector3(-1000, -1000, -1000));
+            //66: Change to different Layer?
             while (objectPositioned == 0)
             {
                 if (gridPositions.Count > 0)
                 {
                     Vector3 randomPosition = RandomPosition();
 
-                    if (!objectOverlapsQ(randomPosition, itemToLocate))
+                    if (!ObjectOverlapsQ(randomPosition, itemToLocate))
                     {
-                        placeItem(itemToLocate, randomPosition);
+                        PlaceItem(itemToLocate, randomPosition);
                         itemToLocate.center = new Vector2(randomPosition.x, randomPosition.y);
                         items[i] = itemToLocate;
                         objectPositioned = 1;
@@ -329,54 +383,27 @@ public class BoardManager : MonoBehaviour
                     return false;
                 }
             }
-
         }
         return true;
     }
 
-    /// Macro function that initializes the Board
-    public void SetupScene()
-    {
-        setKPInstance();
-
-        //If the bool returned by LayoutObjectAtRandom() is false, then retry again:
-        //Destroy all items. Initialize list again and try to place them once more.
-        int nt = 200;
-        bool itemsPlaced = false;
-        while (nt >= 1 && !itemsPlaced)
-        {
-
-            GameObject[] items1 = GameObject.FindGameObjectsWithTag("Item");
-            foreach (GameObject item in items1)
-            {
-                Destroy(item);
-            }
-
-            InitialiseList();
-            itemsPlaced = LayoutObjectAtRandom();
-            nt--;
-        }
-        if (itemsPlaced == false)
-        {
-            GameManager.errorInScene("Not enough space to place all items");
-        }
-
-    }
 
     //Checks if positioning an item in the new position generates an overlap.
     //Returns: TRUE if there is an overlap. FALSE Otherwise.
-    bool objectOverlapsQ(Vector3 pos, Item item)
+    bool ObjectOverlapsQ(Vector3 pos, Item item)
     {
         Vector2 posxy = new Vector3(pos.x, pos.y);
-        bool overlapValue = Physics2D.OverlapArea(item.coordValue1 + posxy, item.coordValue2 + posxy);
-        bool overlapWeight = Physics2D.OverlapArea(item.coordWeight1 + posxy, item.coordWeight2 + posxy);
+        bool overlapValue = Physics2D.OverlapArea(item.coordValue1 + 
+            posxy, item.coordValue2 + posxy);
+        bool overlapWeight = Physics2D.OverlapArea(item.coordWeight1 + 
+            posxy, item.coordWeight2 + posxy);
         
         return overlapValue || overlapWeight;
         //return false;
     }
 
     //Updates the timer rectangle size accoriding to the remaining time.
-    public void updateTimer()
+    public void UpdateTimer()
     {
         Image timer = GameObject.Find("Timer").GetComponent<Image>();
         timer.fillAmount = GameManager.tiempo / GameManager.totalTime;
@@ -385,28 +412,28 @@ public class BoardManager : MonoBehaviour
     //Sets the triggers for pressing the corresponding keys
     //123: Perhaps a good practice thing to do would be to create a "close scene" function that takes as parameter the answer and closes everything (including keysON=false) and then forwards to 
     //changeToNextScene(answer) on game manager
-    private void setKeyInput()
+    private void SetKeyInput()
     {
 
         if (GameManager.escena == "Trial")
         {
             if (Input.GetKeyDown(KeyCode.UpArrow))
             {
-                GameManager.saveTimeStamp("ParticipantSkip");
-                GameManager.changeToNextScene(0, true);
+                IOManager.SaveTimeStamp("ParticipantSkip");
+                GameManager.ChangeToNextScene(itemClicks, true);
             }
         }
         else if (GameManager.escena == "SetUp")
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                GameManager.setTimeStamp();
-                GameManager.changeToNextScene(0, false);
+                GameManager.SetTimeStamp();
+                GameManager.ChangeToNextScene(itemClicks, false);
             }
         }
     }
 
-    public void setupInitialScreen()
+    public void SetupInitialScreen()
     {
         //Button
         GameObject start = GameObject.Find("Start") as GameObject;
@@ -419,45 +446,44 @@ public class BoardManager : MonoBehaviour
         InputField pID = GameObject.Find("ParticipantID").GetComponent<InputField>();
 
         InputField.SubmitEvent se = new InputField.SubmitEvent();
-        se.AddListener((value) => submitPID(value, start, rand));
+        se.AddListener((value) => SubmitPID(value, start, rand));
         pID.onEndEdit = se;
 
         //Randomisation Input
         InputField rID = rand.GetComponent<InputField>();
 
         InputField.SubmitEvent se2 = new InputField.SubmitEvent();
-        se2.AddListener((value) => submitRandID(value, start));
+        se2.AddListener((value) => SubmitRandID(value, start));
         rID.onEndEdit = se2;
     }
 
-    private void submitPID(string pIDs, GameObject start, GameObject rand)
+    private void SubmitPID(string pIDs, GameObject start, GameObject rand)
     {
         GameObject pID = GameObject.Find("ParticipantID");
         GameObject pIDT = GameObject.Find("ParticipantIDText");
         pID.SetActive(false);
+        pIDT.SetActive(true);
 
         Text inputID = pIDT.GetComponent<Text>();
         inputID.text = "Randomisation Number";
 
         //Set Participant ID
-        GameManager.participantID = pIDs;
+        IOManager.participantID = pIDs;
 
         //Activate Randomisation Listener
         rand.SetActive(true);
 
     }
 
-    private void submitRandID(string rIDs, GameObject start)
+    private void SubmitRandID(string rIDs, GameObject start)
     {
-        //Debug.Log (pIDs);
-
         GameObject rID = GameObject.Find("RandomisationID");
         GameObject pIDT = GameObject.Find("ParticipantIDText");
         rID.SetActive(false);
         pIDT.SetActive(false);
 
         //Set Participant ID
-        GameManager.randomisationID = rIDs;
+        IOManager.randomisationID = rIDs;
 
         //Activate Start Button and listener
         start.SetActive(true);
@@ -467,14 +493,14 @@ public class BoardManager : MonoBehaviour
     }
 
 
-    public static string getItemCoordinates()
+    public static string GetItemCoordinates()
     {
         string coordinates = "";
         foreach (Item it in items)
         {
-            Debug.Log("item");
-            Debug.Log(it.center);
-            Debug.Log(it.coordWeight1);
+            //Debug.Log("item");
+            //Debug.Log(it.center);
+            //Debug.Log(it.coordWeight1);
             coordinates = coordinates + "(" + it.center.x + "," + it.center.y + ")";
         }
         return coordinates;
@@ -483,8 +509,8 @@ public class BoardManager : MonoBehaviour
     public static void StartClicked()
     {
         Debug.Log("Start Button Clicked");
-        GameManager.setTimeStamp();
-        GameManager.changeToNextScene(0, false);
+        GameManager.SetTimeStamp();
+        GameManager.ChangeToNextScene(BoardManager.itemClicks, false);
     }
 
     // Function to display distance and weight in Unity
@@ -598,7 +624,7 @@ public class BoardManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        setKeyInput();
+        SetKeyInput();
 
         if(GameManager.escena == "Trial")
         {
