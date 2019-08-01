@@ -60,7 +60,7 @@ public class GameManager : MonoBehaviour
     // Current block initialization
     public static int block = 0;
 
-    // Total trial (As if no blocks were used)
+    // Total trial
     public static int TotalTrials;
 
     private static bool showTimer;
@@ -75,7 +75,13 @@ public class GameManager : MonoBehaviour
 
     // Time given for each trial (The total time the items are shown -With and without the question-)
     public static float timeQuestion;
-    
+    public static float timeAnswer;
+
+    // IMPORTANT: DECISION or OPTIMISATION KP
+    // Game skips answer screen if optimisation is chosen.
+    // If Decision, set decision = 1 in x_param2.txt. 
+    public static int decision;
+
     // Total number of trials in each block
     public static int numberOfTrials;
 
@@ -90,6 +96,13 @@ public class GameManager : MonoBehaviour
 
     //The order of the left/right No/Yes randomization
     public static int[] buttonRandomization;
+
+    // To record answer in the decision KP
+    // 0 if NO
+    // 1 if YES
+    // 2 if not selected
+    // 100 if not applicable. i.e. optimisation KP.
+    public static int answer;
 
     // Skip button in case user does not want a break
     public static Button skipButton;
@@ -185,17 +198,26 @@ public class GameManager : MonoBehaviour
             showTimer = true;
             boardScript.SetupTrial();
 
+
             tiempo = timeQuestion;
             totalTime = timeQuestion;
         }
+        else if (escena == "TrialAnswer")
+        {
+            showTimer = true;
+            answer = 2;
 
+            BoardManager.RandomizeButtons();
+
+            tiempo = timeAnswer;
+            totalTime = timeAnswer;
+        }
         else if (escena == "InterTrialRest")
         {
             showTimer = false;
             tiempo = Random.Range(timeRest1min, timeRest1max);
             totalTime = tiempo;
         }
-
         else if (escena == "InterBlockRest")
         {
             trial = 0;
@@ -248,8 +270,7 @@ public class GameManager : MonoBehaviour
             StartTimer();
         }
     }
-
-
+    
     //Takes care of changing the Scene to the next one (Except for when in the setup scene)
     public static void ChangeToNextScene(List<BoardManager.Click> itemClicks, bool skipped)
     {        
@@ -297,12 +318,29 @@ public class GameManager : MonoBehaviour
 
             payAmount += pay;
             Debug.Log("current pay: $" + payAmount);
-
-            IOManager.SaveTrialInfo(ExtractItemsSelected(itemClicks), timeTaken, "");
-            IOManager.SaveTimeStamp("ParticipantAnswer");
+            
+            IOManager.SaveTimeStamp("AnswerScreen");
             IOManager.SaveClicks(itemClicks);
 
             // Load next scene
+            if (decision == 1)
+            {
+                SceneManager.LoadScene("TrialAnswer");
+            }
+            else if (decision == 0)
+            {
+                SceneManager.LoadScene("InterTrialRest");
+            }
+        }
+        else if (escena == "TrialAnswer")
+        {
+            IOManager.SaveTrialInfo(answer, ExtractItemsSelected(itemClicks), timeTaken, "");
+
+            if (answer != 2)
+            {
+                IOManager.SaveTimeStamp("ParticipantAnswer");
+            }
+
             SceneManager.LoadScene("InterTrialRest");
         }
         else if (escena == "InterTrialRest")
@@ -347,7 +385,7 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log(errorDetails);
         
-        IOManager.SaveTrialInfo(ExtractItemsSelected(BoardManager.itemClicks), 
+        IOManager.SaveTrialInfo(answer, ExtractItemsSelected(BoardManager.itemClicks), 
             timeQuestion, errorDetails);
         ChangeToNextTrial();
     }

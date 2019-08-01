@@ -176,6 +176,9 @@ public class IOManager : MonoBehaviour
         dictionary.TryGetValue("timeRest1max", out string timeRest1maxS);
         dictionary.TryGetValue("timeRest2", out string timeRest2S);
         dictionary.TryGetValue("timeQuestion", out string timeQuestionS);
+        dictionary.TryGetValue("timeAnswer", out string timeAnswerS);
+
+        dictionary.TryGetValue("decision", out string decisionS);
         dictionary.TryGetValue("numberOfTrials", out string numberOfTrialsS);
         dictionary.TryGetValue("numberOfBlocks", out string numberOfBlocksS);
         dictionary.TryGetValue("numberOfInstances", out string numberOfInstancesS);
@@ -185,6 +188,9 @@ public class IOManager : MonoBehaviour
         GameManager.timeRest1max = Convert.ToSingle(timeRest1maxS);
         GameManager.timeRest2 = Convert.ToSingle(timeRest2S);
         GameManager.timeQuestion = int.Parse(timeQuestionS);
+        GameManager.timeAnswer = int.Parse(timeAnswerS);
+
+        GameManager.decision = int.Parse(decisionS);
         GameManager.numberOfTrials = int.Parse(numberOfTrialsS);
         GameManager.numberOfBlocks = int.Parse(numberOfBlocksS);
         GameManager.numberOfInstances = int.Parse(numberOfInstancesS);
@@ -202,17 +208,11 @@ public class IOManager : MonoBehaviour
         }
         
         ////Assigns LayoutParameters
-        dictionary.TryGetValue("randomPlacementType", out string randomPlacementTypeS);
         dictionary.TryGetValue("columns", out string columnsS);
         dictionary.TryGetValue("rows", out string rowsS);
-        dictionary.TryGetValue("totalAreaBill", out string totalAreaBillS);
-        dictionary.TryGetValue("totalAreaWeight", out string totalAreaWeightS);
-
-        BoardManager.randomPlacementType = Int32.Parse(randomPlacementTypeS);
+        
         BoardManager.columns = Int32.Parse(columnsS);
         BoardManager.rows = Int32.Parse(rowsS);
-        BoardManager.totalAreaBill = Int32.Parse(totalAreaBillS);
-        BoardManager.totalAreaWeight = Int32.Parse(totalAreaWeightS);
     }
 
     /// <summary>
@@ -282,7 +282,7 @@ public class IOManager : MonoBehaviour
     // Each line in the File has the following structure: "trial;answer;timeSpent".
     // itemsSelected in the final solutions (irrespective if it was submitted); 
     // xycorrdinates; Error message if any.".
-    public static void SaveTrialInfo(string itemsSelected, float timeSpent, string error)
+    public static void SaveTrialInfo(int answer, string itemsSelected, float timeSpent, string error)
     {
         string xyCoordinates = BoardManager.GetItemCoordinates();
 
@@ -293,7 +293,7 @@ public class IOManager : MonoBehaviour
         int solutionQ = GameManager.kpinstances[instanceNum - 1].solution;
 
         string dataTrialText = GameManager.block + ";" + GameManager.trial + 
-            ";" + itemsSelected + ";" + timeSpent + ";" + instanceNum + ";" 
+            ";" + itemsSelected + ";" + timeSpent + ";" + BoardManager.ReverseButtons + ";" + instanceNum + ";" 
             + xyCoordinates + ";" + error;
 
         string[] lines = { dataTrialText };
