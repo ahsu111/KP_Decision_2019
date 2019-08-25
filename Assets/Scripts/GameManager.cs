@@ -1,6 +1,6 @@
 ﻿/* Unity 3D program that displays multiple interactive instances of the Knapsack Problem.
  * 
- * Optimal resolution 1024x768. Future users of this program should consider updating the code to suit higher resolution displays.
+ * Optimal resolution 1920x1080
  * 
  * Input files are stored in ./StreamingAssets/Input
  * User responses and other data are stored in ./StreamingAssets/Output
@@ -81,6 +81,23 @@ public class GameManager : MonoBehaviour
     // Game skips answer screen if optimisation is chosen.
     // If Decision, set decision = 1 in x_param2.txt. 
     public static int decision;
+
+    // Variant of the KP; reward, cost or size
+    public static int reward;
+    public static int cost;
+    public static int size;
+
+    // Cost KP: This is the number one should memorise
+    public static int RandNum;
+
+    // How many digits do you want the random number to have? It goes from 1000 to 9999.
+    public static int RandNumDigits = 4;
+
+    // This is what the user submitted
+    public static int SubmittedRandNum;
+
+    //The order of the instances to be presented
+    public static double[] reward_amount;
 
     // Total number of trials in each block
     public static int numberOfTrials;
@@ -164,7 +181,6 @@ public class GameManager : MonoBehaviour
         {
             IOManager.SaveTimeStamp(escena);
         }
-
     }
 
 
@@ -174,30 +190,67 @@ public class GameManager : MonoBehaviour
         /*
 		Scene Order: escena
 		0=setup
-		1=trial game
-		2= intertrial rest
-		3= interblock rest
-		4= end
+        (OPTIONAL 0.5: Reward scene)
+        (OPTIONAL 0.5: Cost scene with number)
+		1= trial game
+        2= trial answer
+		3= intertrial rest
+        (OPTIONAL 3.5: Cost scene enter memorised number)
+		4= interblock rest
+		5= end
+        6= payment
 		*/
         Scene scene = SceneManager.GetActiveScene();
 
         escena = scene.name;
 
-        Debug.Log("Current Scene: " + escena);
+        //Debug.Log("Current Scene: " + escena);
 
         if (escena == "SetUp")
         {
             //Only uploads parameters and instances once.
             boardScript.SetupInitialScreen();
         }
+        else if (escena == "RewardScene")
+        {
+            showTimer = false;
 
+            GameObject.Find("Text").GetComponent<Text>().text = "You are currently playing for $" + reward_amount[block - 1];
+
+            skipButton = GameObject.Find("Skip").GetComponent<Button>();
+            skipButton.onClick.AddListener(SkipClicked);
+        }
+        else if (escena == "ShowNumber")
+        {
+            showTimer = false;
+
+            RandNum = Random.Range((int)Math.Pow(10, RandNumDigits - 1), (int)Math.Pow(10, RandNumDigits) - 1);
+
+            GameObject.Find("Number").GetComponent<Text>().text = "The number you need to memorise is:\n" + RandNum;
+
+            skipButton = GameObject.Find("Skip").GetComponent<Button>();
+            skipButton.onClick.AddListener(SkipClicked);
+        }
+        else if (escena == "EnterNumber")
+        {
+            showTimer = false;
+
+            //Participant Input
+            InputField EnterNum = GameObject.Find("UserNum").GetComponent<InputField>();
+
+            InputField.SubmitEvent se3 = new InputField.SubmitEvent();
+            se3.AddListener((value) => SubmitRandNum(value));
+            EnterNum.onEndEdit = se3;
+
+            skipButton = GameObject.Find("Skip").GetComponent<Button>();
+            skipButton.onClick.AddListener(SkipClicked);
+        }
         else if (escena == "Trial")
         {
             trial++;
             TotalTrials = trial + (block - 1) * numberOfTrials;
             showTimer = true;
             boardScript.SetupTrial();
-
 
             tiempo = timeQuestion;
             totalTime = timeQuestion;
@@ -248,6 +301,22 @@ public class GameManager : MonoBehaviour
 
     }
 
+    public static void SubmitRandNum(string memorised_num)
+    {
+        try
+        {
+            int.TryParse(memorised_num, out SubmittedRandNum);
+        }
+        catch
+        {
+            SubmittedRandNum = -1;
+        }
+
+        Debug.Log("The random number was: " + RandNum + ", user submitted: " + SubmittedRandNum);
+        
+        ChangeToNextScene(BoardManager.itemClicks, true);
+    }
+
     // Function to display user performance (last scene)
     public static string DisplayPerf()
     {
@@ -264,29 +333,57 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
-        if (escena != "SetUp")
+        if (escena != "SetUp" && escena != "RewardScene" && escena != "End" && 
+            escena != "Payment" && escena != "ShowNumber" && escena != "EnterNumber")
         {
             StartTimer();
         }
     }
-    
+
     //Takes care of changing the Scene to the next one (Except for when in the setup scene)
     public static void ChangeToNextScene(List<BoardManager.Click> itemClicks, bool skipped)
-    {        
-        /* Scene Order
-         * 0= Setup
-         * 1= Trial
-         * 2= Intertrial rest
-         * 3= Interblock rest
-         * 5= End
-         * 6= Payment
-         */
+    {
+        /*
+		Scene Order: escena
+		0=setup
+        (OPTIONAL 0.5: Reward scene)
+        (OPTIONAL 0.5: Cost scene with number)
+		1= trial game
+        2= trial answer
+		3= intertrial rest
+        (OPTIONAL 3.5: Cost scene enter memorised number)
+		4= interblock rest
+		5= end
+        6= payment
+		*/
         if (escena == "SetUp")
         {
             block++;
             IOManager.LoadGame();
+            if (reward == 1)
+            {
+                SceneManager.LoadScene("RewardScene");
+            }
+            else if (cost == 1)
+            {
+                SceneManager.LoadScene("ShowNumber");
+            }
+            else
+            {
+                SceneManager.LoadScene("Trial");
+            }
+        }
+        else if (escena == "RewardScene")
+        {
             SceneManager.LoadScene("Trial");
+        }
+        else if (escena == "ShowNumber")
+        {
+            SceneManager.LoadScene("Trial");
+        }
+        else if (escena == "EnterNumber")
+        {
+            SceneManager.LoadScene("InterTrialRest");
         }
         else if (escena == "Trial")
         {
@@ -297,30 +394,9 @@ public class GameManager : MonoBehaviour
             else
             {
                 timeTaken = timeQuestion;
-            }            
-            
-            // Save participant answer
-            // Calc Perf
-            if ((float)valueValue > 0)
-            {
-                performance = (float)valueValue;
-            }
-            else
-            {
-                performance = 0;
             }
 
-            perf.Add(performance);
-
-            pay = Math.Pow(performance, 1);
-
-            paylist.Add(pay);
-
-            payAmount += pay;
-            Debug.Log("current pay: $" + payAmount);
-            
             IOManager.SaveTimeStamp("AnswerScreen");
-            IOManager.SaveClicks(itemClicks);
 
             // Load next scene
             if (decision == 1)
@@ -341,15 +417,54 @@ public class GameManager : MonoBehaviour
                 IOManager.SaveTimeStamp("ParticipantAnswer");
             }
 
-            SceneManager.LoadScene("InterTrialRest");
+            if (cost == 1)
+            {
+                SceneManager.LoadScene("EnterNumber");
+            }
+            else
+            {
+                SceneManager.LoadScene("InterTrialRest");
+            }
         }
         else if (escena == "InterTrialRest")
         {
+            // Save participant answer
+            // Calc Perf
+            performance = 0;
+
+            if (kpinstances[BoardManager.currInstance].solution == answer && 
+                (cost != 1 || RandNum == SubmittedRandNum))
+            {
+                performance = 1;
+            }
+
+            perf.Add(performance);
+
+            pay = reward_amount[block - 1] * performance;
+
+            paylist.Add(pay);
+
+            payAmount += pay;
+            Debug.Log("current pay: $" + payAmount);
+
+            IOManager.SaveClicks(itemClicks);
+
             ChangeToNextTrial();
         }
         else if (escena == "InterBlockRest")
         {
-            SceneManager.LoadScene("Trial");
+            if (reward == 1)
+            {
+                SceneManager.LoadScene("RewardScene");
+            }
+            else if (cost == 1)
+            {
+                SceneManager.LoadScene("Trial");
+            }
+            else
+            {
+                SceneManager.LoadScene("Trial");
+            }
         }
         else if (escena == "End")
         {
@@ -357,14 +472,22 @@ public class GameManager : MonoBehaviour
         }
 
     }
-    
+
     //Redirects to the next scene depending if the trials or blocks are over.
     private static void ChangeToNextTrial()
     {
+        //Debug.Log(trial + "   "+ numberOfTrials);
         //Checks if trials are over
         if (trial < numberOfTrials)
         {
-            SceneManager.LoadScene("Trial");
+            if (cost == 1)
+            {
+                SceneManager.LoadScene("ShowNumber");
+            }
+            else
+            {
+                SceneManager.LoadScene("Trial");
+            }
         }
         else if (block < numberOfBlocks)
         {
@@ -375,7 +498,7 @@ public class GameManager : MonoBehaviour
             SceneManager.LoadScene("End");
         }
     }
-    
+
     /// <summary>
     /// In case of an error: Skip trial and go to next one.
     /// Example of error: Not enough space to place all items
@@ -384,8 +507,8 @@ public class GameManager : MonoBehaviour
     public static void ErrorInScene(string errorDetails)
     {
         Debug.Log(errorDetails);
-        
-        IOManager.SaveTrialInfo(answer, ExtractItemsSelected(BoardManager.itemClicks), 
+
+        IOManager.SaveTrialInfo(answer, ExtractItemsSelected(BoardManager.itemClicks),
             timeQuestion, errorDetails);
         ChangeToNextTrial();
     }
@@ -457,11 +580,25 @@ public class GameManager : MonoBehaviour
             ChangeToNextScene(BoardManager.itemClicks, false);
         }
     }
-    
+
     // Change to next scene if the user clicks skip
     static void SkipClicked()
     {
-        Debug.Log("Skip Clicked");
+        if (escena == "EnterNumber")
+        {
+            try
+            {
+                int.TryParse(GameObject.Find("UserNum").GetComponent<Text>().text, out SubmittedRandNum);
+            }
+            catch 
+            {
+                SubmittedRandNum = -1;
+            }
+
+            Debug.Log("The random number was: " + RandNum + ", user submitted: " + SubmittedRandNum);
+        }
+
+        //Debug.Log("Skip Clicked");
         ChangeToNextScene(BoardManager.itemClicks, true);
     }
 }

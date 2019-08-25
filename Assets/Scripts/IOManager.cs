@@ -11,7 +11,7 @@ public class IOManager : MonoBehaviour
     public static string participantID;
 
     // This is the randomisation number (#_param2.txt that is to be used
-    // for oder of instances for this participant)
+    // for order of instances for this participant)
     public static string randomisationID;
 
     public static string dateID = @System.DateTime.Now.ToString("dd MMMM, yyyy, HH-mm");
@@ -179,6 +179,10 @@ public class IOManager : MonoBehaviour
         dictionary.TryGetValue("timeAnswer", out string timeAnswerS);
 
         dictionary.TryGetValue("decision", out string decisionS);
+        dictionary.TryGetValue("cost", out string costS);
+        dictionary.TryGetValue("reward", out string rewardS);
+        dictionary.TryGetValue("reward_amount", out string reward_amountS);
+        dictionary.TryGetValue("size", out string sizeS);
         dictionary.TryGetValue("numberOfTrials", out string numberOfTrialsS);
         dictionary.TryGetValue("numberOfBlocks", out string numberOfBlocksS);
         dictionary.TryGetValue("numberOfInstances", out string numberOfInstancesS);
@@ -191,6 +195,12 @@ public class IOManager : MonoBehaviour
         GameManager.timeAnswer = int.Parse(timeAnswerS);
 
         GameManager.decision = int.Parse(decisionS);
+        GameManager.cost = int.Parse(costS);
+        GameManager.reward = int.Parse(rewardS);
+        //Debug.Log(reward_amountS.Substring(1, reward_amountS.Length - 2));
+        GameManager.reward_amount = Array.ConvertAll(reward_amountS.Substring(1,
+            reward_amountS.Length - 2).Split(','), Double.Parse);
+        GameManager.size = int.Parse(sizeS);
         GameManager.numberOfTrials = int.Parse(numberOfTrialsS);
         GameManager.numberOfBlocks = int.Parse(numberOfBlocksS);
         GameManager.numberOfInstances = int.Parse(numberOfInstancesS);
@@ -199,7 +209,7 @@ public class IOManager : MonoBehaviour
             Array.ConvertAll(instanceRandomizationS.Substring(1, 
             instanceRandomizationS.Length - 2).Split(','), int.Parse);
 
-        Debug.Log(instanceRandomizationNo0.Length);
+        //Debug.Log(instanceRandomizationNo0.Length);
         GameManager.instanceRandomization = new int[instanceRandomizationNo0.Length];
 
         for (int i = 0; i < instanceRandomizationNo0.Length; i++)
@@ -337,7 +347,7 @@ public class IOManager : MonoBehaviour
 
     // Saves the time stamp of every click made on the items 
     // block ; trial ; clicklist (i.e. item number ; itemIn? 
-    // (1: selcting; 0:deselecting; 2: click invalid; 3: reset) ; 
+    // (1: selecting; 0:deselecting; 2: reset)
     // time of the click with respect to the begining of the trial)
     public static void SaveClicks(List<BoardManager.Click> itemClicks)
     {

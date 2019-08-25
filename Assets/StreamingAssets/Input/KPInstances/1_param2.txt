@@ -1,4 +1,8 @@
-decision:0
+decision:1
+cost:0
+reward:0
+reward_amount:[0.01,1,10]
+size:1
 numberOfTrials:8
 numberOfBlocks:2
 numberOfInstances:16

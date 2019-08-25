@@ -12,13 +12,14 @@ public class BoardManager : MonoBehaviour
 {
     // Resoultion width and Height
     // CAUTION! Modifying this does not modify the Screen resolution.
-    // This is related to the unit grid on Unity.
+    // items will be displayed inside a 1600x900 box
     public static int resolutionWidth = 1600;
     public static int resolutionHeight = 900;
+
+    // leave some margin for the "TooHeavy" text and centre timer
     public static int bottommargin = 100;
     public static int centremargin = 200;
-
-
+    
     // Number of Columns and rows of the grid (the possible positions of the items).
     // 1920 x 1080; 16:9; 100 pixels should be sufficient
     public static int columns;
@@ -26,7 +27,6 @@ public class BoardManager : MonoBehaviour
 
     //Prefab of the item interface configuration
     public static GameObject KSItemPrefab;
-    public static GameObject WeightLimitPrefab;
 
     //A canvas where all the board is going to be placed
     private GameObject canvas;
@@ -39,6 +39,7 @@ public class BoardManager : MonoBehaviour
     public Text ValueText;
     public Text WeightText;
     public Text WeightLeft;
+    public Text TooHeavy;
 
     //The possible positions of the items;
     private List<Vector2> gridPositions = new List<Vector2>();
@@ -85,7 +86,7 @@ public class BoardManager : MonoBehaviour
 
     //The items for the scene are stored here.
     private static Item[] items;
-    
+
 
     // The list of all the button clicks. Each event contains the following information:
     // ItemNumber (a number between 1 and the number of items.)
@@ -115,7 +116,7 @@ public class BoardManager : MonoBehaviour
         GameManager.valueValue = 0;
         GameManager.weightValue = 0;
         itemsvisited = 0;
-        
+
         canvas = GameObject.Find("Canvas");
 
         SetKPInstance();
@@ -124,7 +125,7 @@ public class BoardManager : MonoBehaviour
         //Destroy all items. Initialize list again and try to place them once more.
         int nt = 0;
         bool itemsPlaced = false;
-        while (nt <= 10 && !itemsPlaced)
+        while (nt < 10 && !itemsPlaced)
         {
             GameObject[] items1 = GameObject.FindGameObjectsWithTag("Item");
 
@@ -132,12 +133,12 @@ public class BoardManager : MonoBehaviour
             {
                 Destroy(item);
             }
-            
+
             InitialiseList();
+
             itemsPlaced = LayoutObjectAtRandom();
             nt++;
         }
-
 
         if (itemsPlaced == false)
         {
@@ -151,17 +152,17 @@ public class BoardManager : MonoBehaviour
     void SetKPInstance()
     {
         KSItemPrefab = (GameObject)Resources.Load("KSItem3");
-        WeightLimitPrefab = (GameObject)Resources.Load("BigText");
 
         currInstance = GameManager.instanceRandomization[GameManager.TotalTrials - 1];
-        question = "$" + GameManager.kpinstances[currInstance].profit + 
-            Environment.NewLine + GameManager.kpinstances[currInstance].capacity + "kg?";
-        
+        question = "$" + GameManager.kpinstances[currInstance].profit +
+            Environment.NewLine + GameManager.kpinstances[currInstance].capacity + "kg";
+
+
         ws = GameManager.kpinstances[currInstance].weights;
         vs = GameManager.kpinstances[currInstance].values;
 
         solution = GameManager.kpinstances[currInstance].solution;
-        
+
         // Display current value
         ValueText = GameObject.Find("ValueText").GetComponent<Text>();
 
@@ -170,7 +171,10 @@ public class BoardManager : MonoBehaviour
 
         // Display current weight left
         WeightLeft = GameObject.Find("WeightLeft").GetComponent<Text>();
-        
+
+        // Show when weight is excessive
+        TooHeavy = GameObject.Find("TooHeavy").GetComponent<Text>();
+
         // make reset button clickable
         Reset = GameObject.Find("Reset").GetComponent<Button>();
         Reset.onClick.AddListener(ResetClicked);
@@ -180,7 +184,7 @@ public class BoardManager : MonoBehaviour
         Answer.onClick.AddListener(FinishTrial);
 
         SetTopRowText();
-        
+
         // set question text
         Text Quest = GameObject.Find("Question").GetComponent<Text>();
         Quest.text = question;
@@ -198,14 +202,30 @@ public class BoardManager : MonoBehaviour
     {
         gridPositions.Clear();
 
-        // "Completely-Random" Grid
-        for (int x = -resolutionWidth / 2; x < resolutionWidth / 2; x += resolutionWidth / columns)
+        if (GameManager.reward == 1 || GameManager.cost == 1)
         {
-            for (int y = -resolutionHeight / 2 + bottommargin; y < resolutionHeight / 2; y += ((resolutionHeight - bottommargin) / rows))
+            int radius = 350;
+            for (int i = 0; i < ws.Length; i++)
             {
-                if (Math.Abs(x) > centremargin || Math.Abs(y) > centremargin)
+                // Generate a new item every this many radians...
+                double radian_separation = (360f / ws.Length * Math.PI) / 180;
+                //Debug.Log((float)Math.Sin(radian_separation * i) * radius + " " +
+                //    (float)Math.Cos(radian_separation * i) * radius);
+                gridPositions.Add(new Vector2((float)Math.Sin(radian_separation * i) * radius, 
+                    (float)Math.Cos(radian_separation * i) * radius));
+            }
+        }
+        else
+        {
+            // Generate a list of possible positions, this is shaped like a box with a centre cut out
+            for (int x = -resolutionWidth / 2; x < resolutionWidth / 2; x += resolutionWidth / columns)
+            {
+                for (int y = -resolutionHeight / 2 + bottommargin; y < resolutionHeight / 2; y += ((resolutionHeight - bottommargin) / rows))
                 {
-                    gridPositions.Add(new Vector2(x, y));
+                    if (Math.Abs(x) > centremargin || Math.Abs(y) > centremargin)
+                    {
+                        gridPositions.Add(new Vector2(x, y));
+                    }
                 }
             }
         }
@@ -241,7 +261,6 @@ public class BoardManager : MonoBehaviour
             {
                 Vector2 randomPosition = RandomPosition();
                 //Instantiates the item and places it.
-
                 itemToLocate.gameItem.transform.localPosition = randomPosition;
                 itemToLocate.center = new Vector2(itemToLocate.gameItem.transform.localPosition.x,
                     itemToLocate.gameItem.transform.localPosition.y);
@@ -260,20 +279,15 @@ public class BoardManager : MonoBehaviour
         return true;
     }
 
-
-    /// <summary>
-    /// Instantiates an Item and places it on the position from the input
-    /// </summary>
-    /// <returns>The item structure</returns>
-    /// The item placing here is temporary; The real placing is done by the placeItem() method.
+    // Instantiates an Item and places it on the position from the input
+    // The item placing here is temporary; The real placing is done by the LayoutObjectAtRandom() method.
     Item GenerateItem(int itemNumber, Vector2 tempPosition)
     {
-
         //Instantiates the item and places it.
-        GameObject instance = Instantiate(KSItemPrefab, tempPosition, 
+        GameObject instance = Instantiate(KSItemPrefab, tempPosition,
             Quaternion.identity) as GameObject;
         instance.transform.SetParent(canvas.GetComponent<Transform>(), false);
-        
+
         //Gets the subcomponents of the item 
         GameObject bill = instance.transform.Find("Bill").gameObject;
         GameObject weight = instance.transform.Find("Weight").gameObject;
@@ -285,29 +299,30 @@ public class BoardManager : MonoBehaviour
         // Calculates the area of the Value and Weight sections of the item according to approach 2 
         // and then Scales the sections so they match the corresponding area.
         Vector3 curr_billscale = bill.transform.localScale;
-        float billscale = (float) Math.Pow(vs[itemNumber] / vs.Average(), 0.6) * curr_billscale.x;
+        float billscale = (float)Math.Pow(vs[itemNumber] / vs.Average(), 0.6) * curr_billscale.x - 0.15f;
 
-        if (billscale < 0.8f * curr_billscale.x)
+        if (billscale < 0.7f * curr_billscale.x)
         {
-            billscale = 0.8f * curr_billscale.x;
-        } else if (billscale > 1.2f * curr_billscale.x)
+            billscale = 0.7f * curr_billscale.x;
+        }
+        else if (billscale > 1.0f * curr_billscale.x)
         {
-            billscale = 1.2f * curr_billscale.x;
+            billscale = 1.0f * curr_billscale.x;
         }
 
         bill.transform.localScale = new Vector3(billscale,
             billscale, billscale);
-        
-        Vector3 curr_weightscale = weight.transform.localScale;
-        float weightscale = (float)Math.Pow(ws[itemNumber] / ws.Average(), 0.6) * curr_weightscale.x;
 
-        if (weightscale < 0.8f * curr_weightscale.x)
+        Vector3 curr_weightscale = weight.transform.localScale;
+        float weightscale = (float)Math.Pow(ws[itemNumber] / ws.Average(), 0.6) * curr_weightscale.x - 0.15f;
+
+        if (weightscale < 0.7f * curr_weightscale.x)
         {
-            weightscale = 0.8f * curr_weightscale.x;
+            weightscale = 0.7f * curr_weightscale.x;
         }
-        else if (weightscale > 1.2f * curr_weightscale.x)
+        else if (weightscale > 1.0f * curr_weightscale.x)
         {
-            weightscale = 1.2f * curr_weightscale.x;
+            weightscale = 1.0f * curr_weightscale.x;
         }
 
         weight.transform.localScale = new Vector3(weightscale,
@@ -322,7 +337,8 @@ public class BoardManager : MonoBehaviour
         itemInstance.ItemNumber = itemNumber;
 
         itemInstance.ItemButton.onClick.AddListener(delegate {
-            GameManager.gameManager.boardScript.ClickOnItem(itemInstance); });
+            GameManager.gameManager.boardScript.ClickOnItem(itemInstance);
+        });
 
         return (itemInstance);
     }
@@ -335,6 +351,11 @@ public class BoardManager : MonoBehaviour
 
         if (myLight.enabled == true)
         {
+            if ((GameManager.weightValue - ws[itemToLocate.ItemNumber]) <=
+            GameManager.kpinstances[currInstance].capacity)
+            {
+                TooHeavy.text = " ";
+            }
             myLight.enabled = false;
             RemoveItem(itemToLocate);
         }
@@ -350,18 +371,21 @@ public class BoardManager : MonoBehaviour
 
     bool ClickValid(Item itemToLocate)
     {
-        if ((GameManager.weightValue + ws[itemToLocate.ItemNumber]) > 
-            GameManager.kpinstances[currInstance].capacity)
+        if ((GameManager.weightValue + ws[itemToLocate.ItemNumber]) >
+           GameManager.kpinstances[currInstance].capacity)
         {
-            GameObject heavy = Instantiate(WeightLimitPrefab, new Vector2(0, -500), Quaternion.identity) as GameObject;
-            heavy.transform.SetParent(canvas.GetComponent<Transform>(), false);
-            heavy.GetComponent<Text>().text = "Weight Limit Exceeded";
-            Destroy(heavy, 1);
-            return false;
+            TooHeavy.text = "Weight Limit Exceeded!";
+            WeightLeft.text = "Exceeded";
         }
+        else
+        {
+            TooHeavy.text = " ";
+            WeightLeft.text = "Excess Capacity: " + (GameManager.kpinstances[currInstance].capacity -
+            GameManager.weightValue).ToString() + "kg";
+        }
+
         return true;
     }
-    
 
     //Updates the timer rectangle size accoriding to the remaining time.
     public void UpdateTimer()
@@ -376,14 +400,7 @@ public class BoardManager : MonoBehaviour
     private void SetKeyInput()
     {
 
-        if (GameManager.escena == "Trial")
-        {
-            if (Input.GetKeyDown(KeyCode.UpArrow))
-            {
-                FinishTrial();
-            }
-        }
-        else if (GameManager.escena == "TrialAnswer")
+        if (GameManager.escena == "TrialAnswer")
         {
             if (Input.GetKeyDown(KeyCode.LeftArrow))
             {
@@ -411,7 +428,7 @@ public class BoardManager : MonoBehaviour
         //Button
         GameObject start = GameObject.Find("Start") as GameObject;
         start.SetActive(false);
-        
+
         GameObject rand = GameObject.Find("RandomisationID") as GameObject;
         rand.SetActive(false);
 
@@ -483,7 +500,7 @@ public class BoardManager : MonoBehaviour
     {
         Debug.Log("Start Button Clicked");
         GameManager.SetTimeStamp();
-        GameManager.ChangeToNextScene(BoardManager.itemClicks, false);
+        GameManager.ChangeToNextScene(itemClicks, false);
     }
 
     // Function to display distance and weight in Unity
@@ -494,9 +511,11 @@ public class BoardManager : MonoBehaviour
 
         CalcWeight();
         WeightText.text = "Current Weight: " + GameManager.weightValue.ToString() + "kg";
-
-        WeightLeft.text = "Excess Capacity: " + (GameManager.kpinstances[currInstance].capacity - 
-            GameManager.weightValue).ToString() + "kg";
+        if ((GameManager.kpinstances[currInstance].capacity - GameManager.weightValue) > 0)
+        {
+            WeightLeft.text = "Excess Capacity: " + (GameManager.kpinstances[currInstance].capacity -
+                GameManager.weightValue).ToString() + "kg";
+        }
     }
 
 
@@ -521,7 +540,7 @@ public class BoardManager : MonoBehaviour
 
         Click newclick;
         newclick.ItemNumber = itemToLocate.ItemNumber;
-        newclick.State = 2;
+        newclick.State = 0;
         newclick.time = GameManager.timeQuestion - GameManager.tiempo;
         itemClicks.Add(newclick);
     }
@@ -583,9 +602,10 @@ public class BoardManager : MonoBehaviour
     }
 
     //Randomizes YES/NO button positions (left or right) and allocates corresponding script to save the correspondent answer.
-    public static void RandomizeButtons(){
-		Button btnLeft = GameObject.Find("Left").GetComponent<Button>();
-		Button btnRight = GameObject.Find("Right").GetComponent<Button>();
+    public static void RandomizeButtons()
+    {
+        Button btnLeft = GameObject.Find("Left").GetComponent<Button>();
+        Button btnRight = GameObject.Find("Right").GetComponent<Button>();
 
         btnLeft.onClick.AddListener(delegate {
             AnswerSelect("left");
@@ -596,14 +616,17 @@ public class BoardManager : MonoBehaviour
 
         ReverseButtons = Random.Range(0, 2);
 
-		if (ReverseButtons == 1) {
-			btnLeft.GetComponentInChildren<Text>().text = "No";
-			btnRight.GetComponentInChildren<Text>().text = "Yes";
-		} else {
-			btnLeft.GetComponentInChildren<Text>().text = "Yes";
-			btnRight.GetComponentInChildren<Text>().text = "No";
-		}
-	}
+        if (ReverseButtons == 1)
+        {
+            btnLeft.GetComponentInChildren<Text>().text = "No";
+            btnRight.GetComponentInChildren<Text>().text = "Yes";
+        }
+        else
+        {
+            btnLeft.GetComponentInChildren<Text>().text = "Yes";
+            btnRight.GetComponentInChildren<Text>().text = "No";
+        }
+    }
 
     public static void FinishTrial()
     {
@@ -653,7 +676,7 @@ public class BoardManager : MonoBehaviour
     {
         SetKeyInput();
 
-        if(GameManager.escena == "Trial")
+        if (GameManager.escena == "Trial")
         {
             SetTopRowText();
         }
