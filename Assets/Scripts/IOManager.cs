@@ -14,23 +14,24 @@ public class IOManager : MonoBehaviour
     // for order of instances for this participant)
     public static string randomisationID;
 
+    // Current time, used in output file names
     public static string dateID = @System.DateTime.Now.ToString("dd MMMM, yyyy, HH-mm");
 
-    public static string identifierName;
-
-    //Is the question shown on scene 1?
-    //private static int questionOn;
-
+    // Starting string of the output file names
+    public static string Identifier;
+    
     //Input and Outout Folders with respect to the Application.dataPath;
     public static string inputFolder = "/StreamingAssets/Input/";
     public static string inputFolderKPInstances = "/StreamingAssets/Input/KPInstances/";
     public static string outputFolder = "/StreamingAssets/Output/";
 
     // Complete folder path of inputs and ouputs
-    public static string folderPathLoad;
-    public static string folderPathLoadInstances;
-    public static string folderPathSave;
-    
+    public static string folderPathLoad = Application.dataPath + inputFolder;
+    public static string folderPathLoadInstances = Application.dataPath + inputFolderKPInstances;
+    public static string folderPathSave = Application.dataPath + outputFolder;
+
+    public static Dictionary<string, string> dict;
+
     /*
 	 * Loads all of the instances to be uploaded form .txt files. Example of input file:
 	 * Name of the file: i3.txt
@@ -44,142 +45,114 @@ public class IOManager : MonoBehaviour
 	 */
     public static void LoadGame()
     {
-        folderPathLoad = Application.dataPath + inputFolder;
-        folderPathLoadInstances = Application.dataPath + inputFolderKPInstances;
-        folderPathSave = Application.dataPath + outputFolder;
-        LoadParameters();
-        
+        Identifier = "KP_" + participantID + "_" + randomisationID + "_" + dateID + "_";
+
+        dict = LoadParameters();
+
+        // Process time & randomisation parameters
+        AssignVariables(dict);
+
+        // Load and process all instance parameters
+        LoadInstances(GameManager.numberOfInstances);
+
+        // Create output file headers
+        SaveHeaders();
+
+
+    }
+
+    // Reads all instances from .txt files.
+    // The instances are stored as tspinstances structs in an array called "tspinstances"
+    private static void LoadInstances(int numberOfInstances)
+    {
         GameManager.kpinstances = new GameManager.KPInstance[GameManager.numberOfInstances];
 
-        for (int k = 1; k <= GameManager.numberOfInstances; k++)
+        for (int k = 0; k < GameManager.numberOfInstances; k++)
         {
             var dict = new Dictionary<string, string>();
 
-            try
-            {   // Open the text file using a stream reader.
-                using (StreamReader sr = new StreamReader(folderPathLoadInstances + "i" + k + ".txt"))
-                {
-
-                    string line;
-                    while (!string.IsNullOrEmpty((line = sr.ReadLine())))
-                    {
-                        string[] tmp = line.Split(new char[] { ':' }, 
-                            StringSplitOptions.RemoveEmptyEntries);
-
-                        // Add the key-value pair to the dictionary:
-                        dict.Add(tmp[0], tmp[1]);//int.Parse(dict[tmp[1]]);
-                    }
-                    // Read the stream to a string, and write the string to the console.
-                    //String line = sr.ReadToEnd();
-                }
-            }
-            catch (Exception e)
+            // Open the text file using a stream reader.
+            using (StreamReader sr = new StreamReader(folderPathLoadInstances + "i" + (k + 1) + ".txt"))
             {
-                Debug.Log("The file could not be read: " + e.Message);
+                ReadToDict(sr, dict);
             }
+
             dict.TryGetValue("weights", out string weightsS);
             dict.TryGetValue("values", out string valuesS);
             dict.TryGetValue("capacity", out string capacityS);
             dict.TryGetValue("profit", out string profitS);
             dict.TryGetValue("solution", out string solutionS);
 
-            GameManager.kpinstances[k - 1].weights = 
+            GameManager.kpinstances[k].weights = 
                 Array.ConvertAll(weightsS.Substring(1, weightsS.Length - 2).Split(','), int.Parse);
-            GameManager.kpinstances[k - 1].values = 
+            GameManager.kpinstances[k].values = 
                 Array.ConvertAll(valuesS.Substring(1, valuesS.Length - 2).Split(','), int.Parse);
-            GameManager.kpinstances[k - 1].capacity = int.Parse(capacityS);
-            GameManager.kpinstances[k - 1].profit = int.Parse(profitS);
-            GameManager.kpinstances[k - 1].solution = int.Parse(solutionS);
+            GameManager.kpinstances[k].capacity = int.Parse(capacityS);
+            GameManager.kpinstances[k].profit = int.Parse(profitS);
+            GameManager.kpinstances[k].solution = int.Parse(solutionS);
 
-            dict.TryGetValue("problemID", out GameManager.kpinstances[k - 1].id);
-            dict.TryGetValue("instanceType", out GameManager.kpinstances[k - 1].type);
-
+            dict.TryGetValue("problemID", out GameManager.kpinstances[k].id);
+            dict.TryGetValue("instanceType", out GameManager.kpinstances[k].type);
         }
     }
 
-    //Loads the parameters form the text files: param.txt and layoutParam.txt
-    private static void LoadParameters()
+    // Loads the parameters from the text files: param.txt
+    private static Dictionary<string, string> LoadParameters()
     {
+        // Store parameters in a dictionary
         var dict = new Dictionary<string, string>();
-
-        try
-        {   // Open the text file using a stream reader.
-            using (StreamReader sr = new StreamReader(folderPathLoad + "layoutParam.txt"))
-            {
-                // (This loop reads every line until EOF or the first blank line.)
-                string line;
-                while (!string.IsNullOrEmpty((line = sr.ReadLine())))
-                {
-                    // Split each line around ':'
-                    string[] tmp = line.Split(new char[] { ':' }, 
-                        StringSplitOptions.RemoveEmptyEntries);
-                    // Add the key-value pair to the dictionary:
-                    dict.Add(tmp[0], tmp[1]);//int.Parse(dict[tmp[1]]);
-                }
-            }
-
-
-            using (StreamReader sr1 = new StreamReader(folderPathLoad + "param.txt"))
-            {
-
-                // (This loop reads every line until EOF or the first blank line.)
-                string line1;
-                while (!string.IsNullOrEmpty((line1 = sr1.ReadLine())))
-                {
-                    // Split each line around ':'
-                    string[] tmp = line1.Split(new char[] { ':' }, 
-                        StringSplitOptions.RemoveEmptyEntries);
-                    // Add the key-value pair to the dictionary:
-                    dict.Add(tmp[0], tmp[1]);//int.Parse(dict[tmp[1]]);
-                }
-            }
-        }
-        catch (Exception e)
+        using (StreamReader sr = new StreamReader(folderPathLoad + "layoutParam.txt"))
         {
-            Debug.Log("The file could not be read: " + e.Message);
+            ReadToDict(sr, dict);
         }
-
-
-        try
+        // Reading time_param.txt
+        using (StreamReader sr1 = new StreamReader(folderPathLoad + "time_param.txt"))
         {
-            using (StreamReader sr2 = new StreamReader(folderPathLoadInstances + 
-                randomisationID + "_param2.txt"))
-            {
-                // (This loop reads every line until EOF or the first blank line.)
-                string line2;
-                while (!string.IsNullOrEmpty((line2 = sr2.ReadLine())))
-                {
-                    // Split each line around ':'
-                    string[] tmp = line2.Split(new char[] { ':' }, 
-                        StringSplitOptions.RemoveEmptyEntries);
-
-                    // Add the key-value pair to the dictionary:
-                    dict.Add(tmp[0], tmp[1]);//int.Parse(dict[tmp[1]]);
-                }
-            }
+            ReadToDict(sr1, dict);
         }
-        catch (Exception e)
+        // Reading param2.txt within the Input folder
+        using (StreamReader sr2 = new StreamReader(folderPathLoadInstances + randomisationID + "_param2.txt"))
         {
-            Debug.Log("The file could not be read: " + e.Message);
+            ReadToDict(sr2, dict);
         }
 
-        AssignVariables(dict);
+        return dict;
     }
 
+    // Store an input file "sr" in a dictionary "dict"
+    private static void ReadToDict(StreamReader sr, Dictionary<string, string> dict)
+    {
+        string line;
+        // (This loop reads every line until EOF or the first blank line.)
+        while (!string.IsNullOrEmpty(line = sr.ReadLine()))
+        {
+            string[] tmp = line.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+
+            // Add the key-value pair to the dictionary:
+            if (!dict.ContainsKey(tmp[0]))
+            {
+                dict.Add(tmp[0], tmp[1]);
+            }
+        }
+        sr.Close();
+    }
 
     //Assigns the parameters in the dictionary to variables
     private static void AssignVariables(Dictionary<string, string> dictionary)
     {
-
         //Assigns Parameters
         dictionary.TryGetValue("timeRest1min", out string timeRest1minS);
         dictionary.TryGetValue("timeRest1max", out string timeRest1maxS);
         dictionary.TryGetValue("timeRest2", out string timeRest2S);
         dictionary.TryGetValue("timeQuestion", out string timeQuestionS);
         dictionary.TryGetValue("timeAnswer", out string timeAnswerS);
+        dictionary.TryGetValue("timeCostShow", out string timeCostShowS);
+        dictionary.TryGetValue("timeCostEnter", out string timeCostEnterS);
+        dictionary.TryGetValue("timeReward", out string timeRewardS);
 
         dictionary.TryGetValue("decision", out string decisionS);
         dictionary.TryGetValue("cost", out string costS);
+        dictionary.TryGetValue("cost_digits", out string cost_digitsS);
         dictionary.TryGetValue("reward", out string rewardS);
         dictionary.TryGetValue("reward_amount", out string reward_amountS);
         dictionary.TryGetValue("size", out string sizeS);
@@ -193,9 +166,13 @@ public class IOManager : MonoBehaviour
         GameManager.timeRest2 = Convert.ToSingle(timeRest2S);
         GameManager.timeQuestion = int.Parse(timeQuestionS);
         GameManager.timeAnswer = int.Parse(timeAnswerS);
+        GameManager.timeCostShow = int.Parse(timeCostShowS);
+        GameManager.timeCostEnter = int.Parse(timeCostEnterS); 
+        GameManager.timeReward = int.Parse(timeRewardS);
 
         GameManager.decision = int.Parse(decisionS);
         GameManager.cost = int.Parse(costS);
+        GameManager.RandNumDigits = int.Parse(cost_digitsS);
         GameManager.reward = int.Parse(rewardS);
         //Debug.Log(reward_amountS.Substring(1, reward_amountS.Length - 2));
         GameManager.reward_amount = Array.ConvertAll(reward_amountS.Substring(1,
@@ -210,19 +187,19 @@ public class IOManager : MonoBehaviour
             instanceRandomizationS.Length - 2).Split(','), int.Parse);
 
         //Debug.Log(instanceRandomizationNo0.Length);
-        GameManager.instanceRandomization = new int[instanceRandomizationNo0.Length];
+        GameManager.Randomization = new int[instanceRandomizationNo0.Length];
 
         for (int i = 0; i < instanceRandomizationNo0.Length; i++)
         {
-            GameManager.instanceRandomization[i] = instanceRandomizationNo0[i] - 1;
+            GameManager.Randomization[i] = instanceRandomizationNo0[i] - 1;
         }
         
         ////Assigns LayoutParameters
         dictionary.TryGetValue("columns", out string columnsS);
         dictionary.TryGetValue("rows", out string rowsS);
         
-        BoardManager.columns = Int32.Parse(columnsS);
-        BoardManager.rows = Int32.Parse(rowsS);
+        BoardManager.columns = int.Parse(columnsS);
+        BoardManager.rows = int.Parse(rowsS);
     }
 
     /// <summary>
@@ -234,15 +211,14 @@ public class IOManager : MonoBehaviour
     /// </summary>
     private static void SaveHeaders()
     {
-        identifierName = participantID + "_" + dateID + "_" + "Dec" + "_";
-        string folderPathSave = Application.dataPath + outputFolder;
-
-
         //Saves InstanceInfo
-        string[] lines3 = new string[GameManager.numberOfInstances + 2];
+        //an array of string, a new variable called lines3
+        string[] lines3 = new string[4 + GameManager.numberOfInstances];
         lines3[0] = "PartcipantID:" + participantID;
-        lines3[1] = "instanceNumber" + ";c" + ";p" + ";w" + ";v" + ";id" + ";type" + ";sol";
-        int l = 2;
+        lines3[1] = "RandID:" + randomisationID;
+        lines3[2] = "InitialTimeStamp:" + GameManager.initialTimeStamp;
+        lines3[3] = "instanceNumber;capacity;profit;weights;values;id;type;sol";
+        int l = 4;
         int ksn = 1;
         foreach (GameManager.KPInstance ks in GameManager.kpinstances)
         {
@@ -254,8 +230,8 @@ public class IOManager : MonoBehaviour
             l++;
             ksn++;
         }
-        using (StreamWriter outputFile = new StreamWriter(folderPathSave + 
-            identifierName + "InstancesInfo.txt", true))
+        using (StreamWriter outputFile = new StreamWriter(folderPathSave +
+            Identifier + "InstancesInfo.txt", true))
         {
             foreach (string line in lines3)
                 outputFile.WriteLine(line);
@@ -263,26 +239,48 @@ public class IOManager : MonoBehaviour
 
 
         // Trial Info file headers
-        string[] lines = new string[2];
+        string[] lines = new string[4];
         lines[0] = "PartcipantID:" + participantID;
-        lines[1] = "block;trial;answer;correct;timeSpent;instanceNumber;xyCoordinates;error";
-        using (StreamWriter outputFile = new StreamWriter(folderPathSave + 
-            identifierName + "TrialInfo.txt", true))
+        lines[1] = "RandID:" + randomisationID;
+        lines[2] = "InitialTimeStamp:" + GameManager.initialTimeStamp;
+        lines[3] = "block;trial;answer;correct;timeSpent;itemsSelected;" +
+            "finalvalue;finalweight;ReverseButtons;instanceNumber;pay;" +
+            "xyCoordinates;";
+
+        if(GameManager.cost == 1)
+        {
+            lines[3] = lines[3] + "RandomNumber;" + "SubmittedNumber";
+        }
+
+        using (StreamWriter outputFile = new StreamWriter(folderPathSave +
+            Identifier + "TrialInfo.txt", true))
         {
             foreach (string line in lines)
                 outputFile.WriteLine(line);
         }
 
         // Time Stamps file headers
-        string[] lines1 = new string[3];
+        string[] lines1 = new string[4];
         lines1[0] = "PartcipantID:" + participantID;
-        lines1[1] = "InitialTimeStamp:" + GameManager.initialTimeStamp;
-        lines1[2] = "block;trial;eventType;elapsedTime";
-        using (StreamWriter outputFile = new StreamWriter(folderPathSave + 
-            identifierName + "TimeStamps.txt", true))
+        lines1[1] = "RandID:" + randomisationID;
+        lines1[2] = "InitialTimeStamp:" + GameManager.initialTimeStamp;
+        lines1[3] = "block;trial;eventType;elapsedTime";
+        using (StreamWriter outputFile = new StreamWriter(folderPathSave +
+            Identifier + "TimeStamps.txt", true))
         {
             foreach (string line in lines1)
                 outputFile.WriteLine(line);
+        }
+
+        // Headers for Clicks file
+        string[] lines2 = new string[4];
+        lines2[0] = "PartcipantID:" + participantID;
+        lines2[1] = "RandID:" + randomisationID;
+        lines2[2] = "InitialTimeStamp:" + GameManager.initialTimeStamp;
+        lines2[3] = "block;trial;itemnumber(100=Reset);Out(0)/In(1)/Reset(2)/Other;time";
+        using (StreamWriter outputFile = new StreamWriter(folderPathSave + Identifier + "Clicks.txt", true))
+        {
+            WriteToFile(outputFile, lines2);
         }
     }
 
@@ -292,31 +290,37 @@ public class IOManager : MonoBehaviour
     // Each line in the File has the following structure: "trial;answer;timeSpent".
     // itemsSelected in the final solutions (irrespective if it was submitted); 
     // xycorrdinates; Error message if any.".
-    public static void SaveTrialInfo(int answer, string itemsSelected, float timeSpent, string error)
+    public static void SaveTrialInfo(int answer, string itemsSelected, float timeSpent)
     {
         string xyCoordinates = BoardManager.GetItemCoordinates();
 
         // Get the instance n umber for this trial and add 1 because the 
         // instanceRandomization is linked to array numbering in C#, which starts at 0;
-        int instanceNum = GameManager.instanceRandomization[GameManager.TotalTrials - 1] + 1;
+        int instanceNum = GameManager.Randomization[GameManager.TotalTrials - 1] + 1;
 
         int solutionQ = GameManager.kpinstances[instanceNum - 1].solution;
 
-        string dataTrialText = GameManager.block + ";" + GameManager.trial + 
-            ";" + itemsSelected + ";" + timeSpent + ";" + BoardManager.ReverseButtons + ";" + instanceNum + ";" 
-            + xyCoordinates + ";" + error;
+        //"block;trial;answer;correct;timeSpent;itemsSelected;" +
+        //"finalvalue;finalweight;ReverseButtons;instanceNumber;pay;" +
+        //";xyCoordinates";
 
-        string[] lines = { dataTrialText };
-        string folderPathSave = Application.dataPath + outputFolder;
+        // Reverse buttons is 1 if no/yes; 0 if yes/no
+        string dataTrialText = GameManager.block + ";" + GameManager.trial + ";" + answer + ";" + GameManager.performance 
+             + ";"+ timeSpent + ";" + itemsSelected + ";" + GameManager.valueValue + ";" 
+            + GameManager.weightValue + ";" + BoardManager.ReverseButtons + ";" + instanceNum + ";" + GameManager.pay + ";"
+            + xyCoordinates;
 
+        if (GameManager.cost == 1)
+        {
+            dataTrialText = dataTrialText + ";" + GameManager.RandNum + ";" + GameManager.SubmittedRandNum;
+        }
         // This location can be used by unity to save a file if u open the 
         // game in any platform/computer: Application.persistentDataPath;
 
-        using (StreamWriter outputFile = new StreamWriter(folderPathSave + 
-            identifierName + "TrialInfo.txt", true))
+        using (StreamWriter outputFile = new StreamWriter(folderPathSave +
+            Identifier + "TrialInfo.txt", true))
         {
-            foreach (string line in lines)
-                outputFile.WriteLine(line);
+            outputFile.WriteLine(dataTrialText);
         }
 
         //Options of streamwriter include: Write, WriteLine, WriteAsync, WriteLineAsync
@@ -329,18 +333,13 @@ public class IOManager : MonoBehaviour
     /// 4=InterBlockScreen;5=EndScreen
     public static void SaveTimeStamp(string eventType)
     {
-
         string dataTrialText = GameManager.block + ";" + GameManager.trial + 
             ";" + eventType + ";" + GameManager.TimeStamp();
-
-        string[] lines = { dataTrialText };
-        string folderPathSave = Application.dataPath + outputFolder;
         
-        using (StreamWriter outputFile = new StreamWriter(folderPathSave + 
-            identifierName + "TimeStamps.txt", true))
+        using (StreamWriter outputFile = new StreamWriter(folderPathSave +
+            Identifier + "TimeStamps.txt", true))
         {
-            foreach (string line in lines)
-                outputFile.WriteLine(line);
+            outputFile.WriteLine(dataTrialText);
         }
     }
 
@@ -351,10 +350,9 @@ public class IOManager : MonoBehaviour
     // time of the click with respect to the begining of the trial)
     public static void SaveClicks(List<BoardManager.Click> itemClicks)
     {
-        string folderPathSave = Application.dataPath + outputFolder;
-
         string[] lines = new string[itemClicks.Count];
         int i = 0;
+
         foreach (BoardManager.Click click in itemClicks)
         {
             lines[i] = GameManager.block + ";" + GameManager.trial + 
@@ -362,8 +360,8 @@ public class IOManager : MonoBehaviour
             i++;
         }
 
-        using (StreamWriter outputFile = new StreamWriter(folderPathSave + 
-            identifierName + "Clicks.txt", true))
+        using (StreamWriter outputFile = new StreamWriter(folderPathSave +
+            Identifier + "Clicks.txt", true))
         {
             WriteToFile(outputFile, lines);
         }

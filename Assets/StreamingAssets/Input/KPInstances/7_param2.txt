@@ -1,0 +1,10 @@
+decision:1
+cost:0
+cost_digits:4
+reward:0
+reward_amount:[1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5]
+size:1
+numberOfTrials:8
+numberOfBlocks:2
+numberOfInstances:16
+instanceRandomization:[1,4,6,13,8,9,11,14,10,7,3,5,16,15,2,12]

@@ -57,12 +57,12 @@ public class GameManager : MonoBehaviour
     // Current trial initialization
     public static int trial = 0;
 
+    // The current trial number across all blocks
+    public static int TotalTrials = 0;
+
     // Current block initialization
     public static int block = 0;
-
-    // Total trial
-    public static int TotalTrials;
-
+    
     private static bool showTimer;
 
     // Modifiable Variables:
@@ -76,6 +76,15 @@ public class GameManager : MonoBehaviour
     // Time given for each trial (The total time the items are shown -With and without the question-)
     public static float timeQuestion;
     public static float timeAnswer;
+
+    // If participant submitted early, must wait X seconds before they are able to enter the memorised number
+    public static float WAIT_TIME;
+    // To record if the participant had to wait before submitting answer, 1 if yes, 0 otherwise
+    public static int Waited;
+
+    public static float timeCostShow;
+    public static float timeCostEnter;
+    public static float timeReward;
 
     // IMPORTANT: DECISION or OPTIMISATION KP
     // Game skips answer screen if optimisation is chosen.
@@ -91,7 +100,7 @@ public class GameManager : MonoBehaviour
     public static int RandNum;
 
     // How many digits do you want the random number to have? It goes from 1000 to 9999.
-    public static int RandNumDigits = 4;
+    public static int RandNumDigits;
 
     // This is what the user submitted
     public static int SubmittedRandNum;
@@ -107,9 +116,9 @@ public class GameManager : MonoBehaviour
 
     //Number of instance file to be considered. From i1.txt to i_.txt..
     public static int numberOfInstances;
-
-    //The order of the instances to be presented
-    public static int[] instanceRandomization;
+    
+    // The order of the Instances to be presented
+    public static int[] Randomization;
 
     //The order of the left/right No/Yes randomization
     public static int[] buttonRandomization;
@@ -215,10 +224,15 @@ public class GameManager : MonoBehaviour
         {
             showTimer = false;
 
-            GameObject.Find("Text").GetComponent<Text>().text = "You are currently playing for $" + reward_amount[block - 1];
+            //Debug.Log(reward_amount[0] + "   " + reward_amount[1] + "   " + reward_amount[2] + "   " + reward_amount[3] + "   " + reward_amount[4]);
 
-            skipButton = GameObject.Find("Skip").GetComponent<Button>();
-            skipButton.onClick.AddListener(SkipClicked);
+            GameObject.Find("Text").GetComponent<Text>().text = "You are currently playing for $" + reward_amount[TotalTrials];
+
+
+            tiempo = timeReward;
+            totalTime = timeReward;
+            //skipButton = GameObject.Find("Skip").GetComponent<Button>();
+            //skipButton.onClick.AddListener(SkipClicked);
         }
         else if (escena == "ShowNumber")
         {
@@ -226,30 +240,38 @@ public class GameManager : MonoBehaviour
 
             RandNum = Random.Range((int)Math.Pow(10, RandNumDigits - 1), (int)Math.Pow(10, RandNumDigits) - 1);
 
-            GameObject.Find("Number").GetComponent<Text>().text = "The number you need to memorise is:\n" + RandNum;
+            GameObject.Find("Number").GetComponent<Text>().text = "" + RandNum;
 
-            skipButton = GameObject.Find("Skip").GetComponent<Button>();
-            skipButton.onClick.AddListener(SkipClicked);
+
+            tiempo = timeCostShow;
+            totalTime = timeCostShow;
+            //skipButton = GameObject.Find("Skip").GetComponent<Button>();
+            //skipButton.onClick.AddListener(SkipClicked);
         }
         else if (escena == "EnterNumber")
         {
             showTimer = false;
 
             //Participant Input
-            InputField EnterNum = GameObject.Find("UserNum").GetComponent<InputField>();
+            BoardManager.EnterNum = GameObject.Find("UserNum").GetComponent<InputField>();
 
             InputField.SubmitEvent se3 = new InputField.SubmitEvent();
             se3.AddListener((value) => SubmitRandNum(value));
-            EnterNum.onEndEdit = se3;
+            BoardManager.EnterNum.onEndEdit = se3;
 
             skipButton = GameObject.Find("Skip").GetComponent<Button>();
             skipButton.onClick.AddListener(SkipClicked);
+
+            tiempo = timeCostEnter;
+            totalTime = timeCostEnter;
         }
         else if (escena == "Trial")
         {
             trial++;
             TotalTrials = trial + (block - 1) * numberOfTrials;
             showTimer = true;
+            WAIT_TIME = 0;
+            Waited = 0;
             boardScript.SetupTrial();
 
             tiempo = timeQuestion;
@@ -322,7 +344,7 @@ public class GameManager : MonoBehaviour
     {
         string perfText = "Performance: ";
 
-        for (int i = 0; i < numberOfInstances; i++)
+        for (int i = 0; i < numberOfTrials * numberOfBlocks; i++)
         {
             // Payment calculation
             perfText += " $" + paylist[i] + ";";
@@ -333,8 +355,8 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (escena != "SetUp" && escena != "RewardScene" && escena != "End" && 
-            escena != "Payment" && escena != "ShowNumber" && escena != "EnterNumber")
+        if (escena != "SetUp" &&  escena != "End" && 
+            escena != "Payment")
         {
             StartTimer();
         }
@@ -390,17 +412,17 @@ public class GameManager : MonoBehaviour
             if (skipped)
             {
                 timeTaken = timeQuestion - tiempo;
+                WAIT_TIME = WAIT_TIME + tiempo;
             }
             else
             {
                 timeTaken = timeQuestion;
             }
 
-            IOManager.SaveTimeStamp("AnswerScreen");
-
             // Load next scene
             if (decision == 1)
             {
+                IOManager.SaveTimeStamp("AnswerScreen");
                 SceneManager.LoadScene("TrialAnswer");
             }
             else if (decision == 0)
@@ -410,16 +432,41 @@ public class GameManager : MonoBehaviour
         }
         else if (escena == "TrialAnswer")
         {
-            IOManager.SaveTrialInfo(answer, ExtractItemsSelected(itemClicks), timeTaken, "");
-
-            if (answer != 2)
+            if (Waited == 0)
             {
-                IOManager.SaveTimeStamp("ParticipantAnswer");
+                WAIT_TIME = WAIT_TIME + tiempo;
+                
+                if (answer != 2)
+                {
+                    IOManager.SaveTimeStamp("ParticipantAnswer");
+                }
             }
 
             if (cost == 1)
             {
-                SceneManager.LoadScene("EnterNumber");
+                Debug.Log(WAIT_TIME + "    " + escena);
+                if (WAIT_TIME > 0)
+                {
+                    if(Waited == 0)
+                    {
+                        tiempo = WAIT_TIME;
+                        totalTime = WAIT_TIME;
+                        Waited = 1;
+                        GameObject.Find("Right").SetActive(false);
+                        GameObject.Find("Left").SetActive(false);
+                        GameObject.Find("Early").GetComponent<Text>().text = "Well done! You finished early, please wait " + WAIT_TIME + " seconds.";
+                    }
+                    showTimer = true;
+
+                    if (tiempo < 0)
+                    {
+                        SceneManager.LoadScene("EnterNumber");
+                    }
+                }
+                else
+                {
+                    SceneManager.LoadScene("EnterNumber");
+                }
             }
             else
             {
@@ -440,13 +487,14 @@ public class GameManager : MonoBehaviour
 
             perf.Add(performance);
 
-            pay = reward_amount[block - 1] * performance;
+            pay = reward_amount[TotalTrials - 1] * performance;
 
             paylist.Add(pay);
 
             payAmount += pay;
             Debug.Log("current pay: $" + payAmount);
 
+            IOManager.SaveTrialInfo(answer, ExtractItemsSelected(itemClicks), timeTaken);
             IOManager.SaveClicks(itemClicks);
 
             ChangeToNextTrial();
@@ -459,7 +507,7 @@ public class GameManager : MonoBehaviour
             }
             else if (cost == 1)
             {
-                SceneManager.LoadScene("Trial");
+                SceneManager.LoadScene("ShowNumber");
             }
             else
             {
@@ -470,7 +518,6 @@ public class GameManager : MonoBehaviour
         {
             SceneManager.LoadScene("Payment");
         }
-
     }
 
     //Redirects to the next scene depending if the trials or blocks are over.
@@ -480,7 +527,11 @@ public class GameManager : MonoBehaviour
         //Checks if trials are over
         if (trial < numberOfTrials)
         {
-            if (cost == 1)
+            if (reward == 1)
+            {
+                SceneManager.LoadScene("RewardScene");
+            }
+            else if (cost == 1)
             {
                 SceneManager.LoadScene("ShowNumber");
             }
@@ -498,21 +549,6 @@ public class GameManager : MonoBehaviour
             SceneManager.LoadScene("End");
         }
     }
-
-    /// <summary>
-    /// In case of an error: Skip trial and go to next one.
-    /// Example of error: Not enough space to place all items
-    /// </summary>
-    /// Receives as input a string with the errorDetails which is saved in the output file.
-    public static void ErrorInScene(string errorDetails)
-    {
-        Debug.Log(errorDetails);
-
-        IOManager.SaveTrialInfo(answer, ExtractItemsSelected(BoardManager.itemClicks),
-            timeQuestion, errorDetails);
-        ChangeToNextTrial();
-    }
-
 
     // Extracts the items that were finally selected based on the sequence of clicks.
     private static string ExtractItemsSelected(List<BoardManager.Click> itemClicks)
@@ -577,6 +613,19 @@ public class GameManager : MonoBehaviour
         // When the time runs out:
         if (tiempo < 0)
         {
+            if (escena == "EnterNumber")
+            {
+                try
+                {
+                    int.TryParse(GameObject.Find("UserNum").GetComponent<Text>().text, out SubmittedRandNum);
+                }
+                catch
+                {
+                    SubmittedRandNum = -1;
+                }
+
+                Debug.Log("The random number was: " + RandNum + ", user submitted: " + SubmittedRandNum);
+            }
             ChangeToNextScene(BoardManager.itemClicks, false);
         }
     }

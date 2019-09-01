@@ -1,5 +1,0 @@
-timeRest1min:0.1
-timeRest1max:0.1
-timeRest2:10
-timeQuestion:60
-timeAnswer:10

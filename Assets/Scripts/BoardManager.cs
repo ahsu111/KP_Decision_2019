@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
-
+using UnityEngine.EventSystems;
 
 // This Script (a component of Game Manager) Initializes the Borad (i.e. screen).
 public class BoardManager : MonoBehaviour
@@ -70,6 +70,10 @@ public class BoardManager : MonoBehaviour
     public static int totalAreaBill = 8;
     public static int totalAreaWeight = 8;
 
+    // Input fields, this helps with auto focus later on
+    public static InputField pID;
+    public static InputField rID;
+    public static InputField EnterNum;
 
     //Structure with the relevant parameters of an item.
     //gameItem: is the game object
@@ -139,11 +143,6 @@ public class BoardManager : MonoBehaviour
             itemsPlaced = LayoutObjectAtRandom();
             nt++;
         }
-
-        if (itemsPlaced == false)
-        {
-            GameManager.ErrorInScene("Not enough space to place all items after" + nt + "tries");
-        }
     }
     //Initializes the instance for this trial:
     //1. Sets the question string using the instance (from the .txt files)
@@ -153,10 +152,15 @@ public class BoardManager : MonoBehaviour
     {
         KSItemPrefab = (GameObject)Resources.Load("KSItem3");
 
-        currInstance = GameManager.instanceRandomization[GameManager.TotalTrials - 1];
+        currInstance = GameManager.Randomization[GameManager.TotalTrials - 1];
         question = "$" + GameManager.kpinstances[currInstance].profit +
-            Environment.NewLine + GameManager.kpinstances[currInstance].capacity + "kg";
+            "\n\n" + GameManager.kpinstances[currInstance].capacity + "kg";
 
+
+        //  Instance information
+        Debug.Log("Setting up  Instance: Block " + (GameManager.block) + "/" + GameManager.numberOfBlocks + 
+            ", Trial " + GameManager.trial + "/" + GameManager.numberOfTrials + " , Total Trial " + 
+            GameManager.TotalTrials + " , Current Instance " + (GameManager.Randomization[GameManager.TotalTrials - 1] + 1));
 
         ws = GameManager.kpinstances[currInstance].weights;
         vs = GameManager.kpinstances[currInstance].values;
@@ -182,6 +186,15 @@ public class BoardManager : MonoBehaviour
         // make answer button clickable
         Answer = GameObject.Find("Answer").GetComponent<Button>();
         Answer.onClick.AddListener(FinishTrial);
+
+        if (GameManager.size == 1)
+        {
+            GameObject.Find("Timer1").SetActive(false);
+        }
+        else
+        {
+            GameObject.Find("Timer").SetActive(false);
+        }
 
         SetTopRowText();
 
@@ -294,39 +307,42 @@ public class BoardManager : MonoBehaviour
 
         //Sets the Text of the items
         bill.GetComponentInChildren<Text>().text = "$" + vs[itemNumber];
-        weight.GetComponentInChildren<Text>().text = "" + ws[itemNumber] + "kg";
+        weight.GetComponentInChildren<Text>().text = ws[itemNumber].ToString() + "kg";
 
-        // Calculates the area of the Value and Weight sections of the item according to approach 2 
-        // and then Scales the sections so they match the corresponding area.
-        Vector3 curr_billscale = bill.transform.localScale;
-        float billscale = (float)Math.Pow(vs[itemNumber] / vs.Average(), 0.6) * curr_billscale.x - 0.15f;
-
-        if (billscale < 0.7f * curr_billscale.x)
+        if (GameManager.size == 1)
         {
-            billscale = 0.7f * curr_billscale.x;
-        }
-        else if (billscale > 1.0f * curr_billscale.x)
-        {
-            billscale = 1.0f * curr_billscale.x;
-        }
+            // Calculates the area of the Value and Weight sections of the item according to approach 2 
+            // and then Scales the sections so they match the corresponding area.
+            Vector3 curr_billscale = bill.transform.localScale;
+            float billscale = (float)Math.Pow(vs[itemNumber] / vs.Average(), 0.6) * curr_billscale.x - 0.15f;
 
-        bill.transform.localScale = new Vector3(billscale,
-            billscale, billscale);
+            if (billscale < 0.7f * curr_billscale.x)
+            {
+                billscale = 0.7f * curr_billscale.x;
+            }
+            else if (billscale > 1.0f * curr_billscale.x)
+            {
+                billscale = 1.0f * curr_billscale.x;
+            }
 
-        Vector3 curr_weightscale = weight.transform.localScale;
-        float weightscale = (float)Math.Pow(ws[itemNumber] / ws.Average(), 0.6) * curr_weightscale.x - 0.15f;
+            bill.transform.localScale = new Vector3(billscale,
+                billscale, billscale);
 
-        if (weightscale < 0.7f * curr_weightscale.x)
-        {
-            weightscale = 0.7f * curr_weightscale.x;
+            Vector3 curr_weightscale = weight.transform.localScale;
+            float weightscale = (float)Math.Pow(ws[itemNumber] / ws.Average(), 0.6) * curr_weightscale.x - 0.15f;
+
+            if (weightscale < 0.7f * curr_weightscale.x)
+            {
+                weightscale = 0.7f * curr_weightscale.x;
+            }
+            else if (weightscale > 1.0f * curr_weightscale.x)
+            {
+                weightscale = 1.0f * curr_weightscale.x;
+            }
+
+            weight.transform.localScale = new Vector3(weightscale,
+                weightscale, weightscale);
         }
-        else if (weightscale > 1.0f * curr_weightscale.x)
-        {
-            weightscale = 1.0f * curr_weightscale.x;
-        }
-
-        weight.transform.localScale = new Vector3(weightscale,
-            weightscale, weightscale);
 
         Item itemInstance = new Item
         {
@@ -390,8 +406,29 @@ public class BoardManager : MonoBehaviour
     //Updates the timer rectangle size accoriding to the remaining time.
     public void UpdateTimer()
     {
-        Image timer = GameObject.Find("Timer").GetComponent<Image>();
-        timer.fillAmount = GameManager.tiempo / GameManager.totalTime;
+        if (GameManager.size != 1 && GameManager.escena == "Trial")
+        {
+            Image timer = GameObject.Find("TimerBar").GetComponent<Image>();
+            timer.fillAmount = GameManager.tiempo / GameManager.totalTime;
+
+            if (timer.fillAmount > 0.5)
+            {
+                Byte Red = (byte)Convert.ToInt32(255 * ((1 - timer.fillAmount) * 2));
+                Byte Green = 255;
+                timer.color = new Color32(Red, Green, 128, 255);
+            }
+            else
+            {
+                Byte Red = 255;
+                Byte Green = (byte)Convert.ToInt32(255 * (timer.fillAmount * 2));
+                timer.color = new Color32(Red, Green, 128, 255);
+            }
+        }
+        else
+        {
+            Image timer = GameObject.Find("Timer").GetComponent<Image>();
+            timer.fillAmount = GameManager.tiempo / GameManager.totalTime;
+        }
     }
 
     //Sets the triggers for pressing the corresponding keys
@@ -400,20 +437,20 @@ public class BoardManager : MonoBehaviour
     private void SetKeyInput()
     {
 
-        if (GameManager.escena == "TrialAnswer")
-        {
-            if (Input.GetKeyDown(KeyCode.LeftArrow))
-            {
-                //Left
-                AnswerSelect("left");
-            }
-            else if (Input.GetKeyDown(KeyCode.RightArrow))
-            {
-                //Right
-                AnswerSelect("right");
-            }
-        }
-        else if (GameManager.escena == "SetUp")
+        //if (GameManager.escena == "TrialAnswer")
+        //{
+        //    if (Input.GetKeyDown(KeyCode.LeftArrow))
+        //    {
+        //        //Left
+        //        AnswerSelect("left");
+        //    }
+        //    else if (Input.GetKeyDown(KeyCode.RightArrow))
+        //    {
+        //        //Right
+        //        AnswerSelect("right");
+        //    }
+        //}
+        if (GameManager.escena == "SetUp")
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
@@ -433,14 +470,15 @@ public class BoardManager : MonoBehaviour
         rand.SetActive(false);
 
         //Participant Input
-        InputField pID = GameObject.Find("ParticipantID").GetComponent<InputField>();
+        pID = GameObject.Find("ParticipantID").GetComponent<InputField>();
+
 
         InputField.SubmitEvent se = new InputField.SubmitEvent();
         se.AddListener((value) => SubmitPID(value, start, rand));
         pID.onEndEdit = se;
 
         //Randomisation Input
-        InputField rID = rand.GetComponent<InputField>();
+        rID = rand.GetComponent<InputField>();
 
         InputField.SubmitEvent se2 = new InputField.SubmitEvent();
         se2.AddListener((value) => SubmitRandID(value, start));
@@ -676,9 +714,19 @@ public class BoardManager : MonoBehaviour
     {
         SetKeyInput();
 
-        if (GameManager.escena == "Trial")
+        if (GameManager.escena == "SetUp")
+        {
+            pID.ActivateInputField();
+            rID.ActivateInputField();
+        }
+        else if (GameManager.escena == "Trial")
         {
             SetTopRowText();
         }
+        if (GameManager.escena == "EnterNumber")
+        {
+            EnterNum.ActivateInputField();
+        }
+
     }
 }
