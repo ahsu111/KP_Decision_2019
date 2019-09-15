@@ -1,0 +1,15 @@
+PartcipantID:1
+RandID:5
+InitialTimeStamp:11-21-14-527
+block;trial;eventType;elapsedTime
+1;0;ShowNumber;0.03
+1;1;Trial;2.113
+1;1;ParticipantSkip;7.159
+1;1;AnswerScreen;7.16
+1;1;TrialAnswer;7.365
+1;1;ParticipantAnswer;8.85
+1;1;EnterNumber;13.407
+1;1;InterTrialRest;18.448
+1;1;InterTrialRest;18.489
+1;1;ShowNumber;18.829
+1;2;Trial;20.88

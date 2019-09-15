@@ -1,10 +1,10 @@
 decision:1
-cost:0
+cost:1
 cost_digits:4
 reward:0
 reward_amount:[1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5]
-size:1
+size:0
 numberOfTrials:8
 numberOfBlocks:2
 numberOfInstances:16
-instanceRandomization:[1,3,2,8,9,16,15,11,12,14,7,13,4,6,5,10]
+instanceRandomization:[7,1,3,14,11,9,13,6,4,16,12,2,10,5,15,8]

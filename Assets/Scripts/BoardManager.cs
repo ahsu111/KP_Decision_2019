@@ -549,7 +549,7 @@ public class BoardManager : MonoBehaviour
 
         CalcWeight();
         WeightText.text = "Current Weight: " + GameManager.weightValue.ToString() + "kg";
-        if ((GameManager.kpinstances[currInstance].capacity - GameManager.weightValue) > 0)
+        if ((GameManager.kpinstances[currInstance].capacity - GameManager.weightValue) >= 0)
         {
             WeightLeft.text = "Excess Capacity: " + (GameManager.kpinstances[currInstance].capacity -
                 GameManager.weightValue).ToString() + "kg";

@@ -71,7 +71,8 @@ public class GameManager : MonoBehaviour
     public static float timeRest1max;
 
     // InterBlock rest time
-    public static float timeRest2;
+    public static float timeRest2min;
+    public static float timeRest2max;
 
     // Time given for each trial (The total time the items are shown -With and without the question-)
     public static float timeQuestion;
@@ -131,7 +132,7 @@ public class GameManager : MonoBehaviour
     public static int answer;
 
     // Skip button in case user does not want a break
-    public static Button skipButton;
+    public static GameObject skipButton;
 
     // A list of floats to record participant performance
     // Performance should always be equal to or greater than 1.
@@ -259,8 +260,7 @@ public class GameManager : MonoBehaviour
             se3.AddListener((value) => SubmitRandNum(value));
             BoardManager.EnterNum.onEndEdit = se3;
 
-            skipButton = GameObject.Find("Skip").GetComponent<Button>();
-            skipButton.onClick.AddListener(SkipClicked);
+            //GameObject.Find("Skip").GetComponent<Button>().onClick.AddListener(SkipClicked);
 
             tiempo = timeCostEnter;
             totalTime = timeCostEnter;
@@ -298,17 +298,20 @@ public class GameManager : MonoBehaviour
             trial = 0;
             block++;
             showTimer = true;
-            tiempo = timeRest2;
+            tiempo = timeRest2max;
             totalTime = tiempo;
-            skipButton = GameObject.Find("Skip").GetComponent<Button>();
-            skipButton.onClick.AddListener(SkipClicked);
+
+            skipButton = GameObject.Find("Skip");
+
+            skipButton.GetComponent<Button>().onClick.AddListener(SkipClicked);
+
+            skipButton.SetActive(false);
         }
         else if (escena == "End")
         {
             showTimer = false;
 
-            skipButton = GameObject.Find("Skip").GetComponent<Button>();
-            skipButton.onClick.AddListener(SkipClicked);
+            GameObject.Find("Skip").GetComponent<Button>().onClick.AddListener(SkipClicked);
         }
         else if (escena == "Payment")
         {
@@ -442,7 +445,7 @@ public class GameManager : MonoBehaviour
                 }
             }
 
-            if (cost == 1)
+            if (cost == 1 || reward == 1)
             {
                 Debug.Log(WAIT_TIME + "    " + escena);
                 if (WAIT_TIME > 0)
@@ -454,18 +457,32 @@ public class GameManager : MonoBehaviour
                         Waited = 1;
                         GameObject.Find("Right").SetActive(false);
                         GameObject.Find("Left").SetActive(false);
-                        GameObject.Find("Early").GetComponent<Text>().text = "Well done! You finished early, please wait " + WAIT_TIME + " seconds.";
+                        GameObject.Find("Early").GetComponent<Text>().text = "Well done! You finished early, please wait " + WAIT_TIME.ToString("0.#") + " seconds.";
                     }
                     showTimer = true;
 
                     if (tiempo < 0)
                     {
-                        SceneManager.LoadScene("EnterNumber");
+                        if (reward == 1)
+                        {
+                            SceneManager.LoadScene("InterTrialRest");
+                        }
+                        else
+                        {
+                            SceneManager.LoadScene("EnterNumber");
+                        }
                     }
                 }
                 else
                 {
-                    SceneManager.LoadScene("EnterNumber");
+                    if (reward == 1)
+                    {
+                        SceneManager.LoadScene("InterTrialRest");
+                    }
+                    else
+                    {
+                        SceneManager.LoadScene("EnterNumber");
+                    }
                 }
             }
             else
@@ -610,22 +627,33 @@ public class GameManager : MonoBehaviour
             boardScript.UpdateTimer();
         }
 
+        if (escena == "InterBlockRest" && (totalTime - tiempo >= timeRest2min))
+        {
+            GameObject.Find("SkipText").GetComponent<Text>().text = "";
+
+            skipButton.SetActive(true);
+        }
+        else if (escena == "InterBlockRest")
+        {
+            GameObject.Find("SkipText").GetComponent<Text>().text = "You can skip break after " + (timeRest2min + tiempo - totalTime).ToString("00.0") + " seconds.";
+        }
+
         // When the time runs out:
         if (tiempo < 0)
         {
-            if (escena == "EnterNumber")
-            {
-                try
-                {
-                    int.TryParse(GameObject.Find("UserNum").GetComponent<Text>().text, out SubmittedRandNum);
-                }
-                catch
-                {
-                    SubmittedRandNum = -1;
-                }
+            //if (escena == "EnterNumber")
+            //{
+            //    try
+            //    {
+            //        int.TryParse(GameObject.Find("UserNum").GetComponent<Text>().text, out SubmittedRandNum);
+            //    }
+            //    catch
+            //    {
+            //        SubmittedRandNum = -1;
+            //    }
 
-                Debug.Log("The random number was: " + RandNum + ", user submitted: " + SubmittedRandNum);
-            }
+            //    Debug.Log("The random number was: " + RandNum + ", user submitted: " + SubmittedRandNum);
+            //}
             ChangeToNextScene(BoardManager.itemClicks, false);
         }
     }

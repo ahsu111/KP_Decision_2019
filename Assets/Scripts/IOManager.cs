@@ -143,7 +143,8 @@ public class IOManager : MonoBehaviour
         //Assigns Parameters
         dictionary.TryGetValue("timeRest1min", out string timeRest1minS);
         dictionary.TryGetValue("timeRest1max", out string timeRest1maxS);
-        dictionary.TryGetValue("timeRest2", out string timeRest2S);
+        dictionary.TryGetValue("timeRest2min", out string timeRest2minS);
+        dictionary.TryGetValue("timeRest2max", out string timeRest2maxS);
         dictionary.TryGetValue("timeQuestion", out string timeQuestionS);
         dictionary.TryGetValue("timeAnswer", out string timeAnswerS);
         dictionary.TryGetValue("timeCostShow", out string timeCostShowS);
@@ -163,7 +164,8 @@ public class IOManager : MonoBehaviour
         
         GameManager.timeRest1min = Convert.ToSingle(timeRest1minS);
         GameManager.timeRest1max = Convert.ToSingle(timeRest1maxS);
-        GameManager.timeRest2 = Convert.ToSingle(timeRest2S);
+        GameManager.timeRest2min = Convert.ToSingle(timeRest2minS);
+        GameManager.timeRest2max = Convert.ToSingle(timeRest2maxS);
         GameManager.timeQuestion = int.Parse(timeQuestionS);
         GameManager.timeAnswer = int.Parse(timeAnswerS);
         GameManager.timeCostShow = int.Parse(timeCostShowS);
