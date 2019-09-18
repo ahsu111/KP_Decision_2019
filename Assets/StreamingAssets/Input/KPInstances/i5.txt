@@ -1,7 +1,7 @@
-weights:[67,59,90,64,62,37,64,70,66,35,48]
-values:[75,17,63,83,48,75,91,97,34,16,72]
-capacity:291
-profit:456
-problemID:21-0.44-0.68
-instanceType:high_prop
+weights:[14,20,34,27,5,9]
+values:[42,3,14,10,6,3]
+capacity:49
+profit:68
+problemID:223-0.45-0.88
+region:overconstrained
 solution:0

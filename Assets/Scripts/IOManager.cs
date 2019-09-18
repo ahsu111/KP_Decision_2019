@@ -181,7 +181,8 @@ public class IOManager : MonoBehaviour
             if (GameManager.reward != 1)
             {
                 GameManager.cost = int.Parse(costS);
-                GameManager.RandNumDigits = int.Parse(cost_digitsS);
+                GameManager.RandNumDigits = Array.ConvertAll(cost_digitsS.Substring(1,
+                    reward_amountS.Length - 2).Split(','), int.Parse);
             }
         }
         //Debug.Log(reward_amountS.Substring(1, reward_amountS.Length - 2));

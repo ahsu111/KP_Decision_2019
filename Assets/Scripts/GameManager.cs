@@ -101,7 +101,7 @@ public class GameManager : MonoBehaviour
     public static int RandNum;
 
     // How many digits do you want the random number to have? It goes from 1000 to 9999.
-    public static int RandNumDigits;
+    public static int[] RandNumDigits;
 
     // This is what the user submitted
     public static int SubmittedRandNum;
@@ -239,7 +239,7 @@ public class GameManager : MonoBehaviour
         {
             showTimer = false;
 
-            RandNum = Random.Range((int)Math.Pow(10, RandNumDigits - 1), (int)Math.Pow(10, RandNumDigits) - 1);
+            RandNum = RandNumDigits[TotalTrials];
 
             GameObject.Find("Number").GetComponent<Text>().text = "" + RandNum;
 

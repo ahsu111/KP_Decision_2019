@@ -1,7 +1,7 @@
-weights:[36,74,41,18,95,88,59,93,46,20,74]
-values:[41,64,36,83,12,85,52,22,58,78,28]
-capacity:283
-profit:380
-problemID:11-0.44-0.68
-instanceType:low_prop
+weights:[20,32,22,9,28,31]
+values:[7,35,39,18,48,18]
+capacity:63
+profit:105
+problemID:55-0.45-0.64
+region:phaseT
 solution:1
