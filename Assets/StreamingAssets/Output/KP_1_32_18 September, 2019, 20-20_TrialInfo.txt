@@ -1,0 +1,6 @@
+PartcipantID:1
+RandID:32
+InitialTimeStamp:20-20-15-294
+block;trial;answer;correct;timeSpent;itemsSelected;finalvalue;finalweight;ReverseButtons;instanceNumber;pay;xyCoordinates;
+1;1;2;0;2;;0;0;1;16;0;(793,290)(-269,-190)(-269,-30)(-446,-30)(793,-350)(-446,-350)(793,130)(262,-30)(-446,-190)(-623,130)(-623,-190)
+1;2;0;1;2;;0;0;0;53;0.5;(-269,-350)(793,290)(-446,-350)(616,-350)(-800,130)(616,290)(262,-350)

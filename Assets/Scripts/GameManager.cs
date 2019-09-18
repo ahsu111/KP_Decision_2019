@@ -93,9 +93,9 @@ public class GameManager : MonoBehaviour
     public static int decision;
 
     // Variant of the KP; reward, cost or size
-    public static int reward;
-    public static int cost;
-    public static int size;
+    public static int reward = 0;
+    public static int cost = 0;
+    public static int size = 0;
 
     // Cost KP: This is the number one should memorise
     public static int RandNum;
@@ -552,7 +552,7 @@ public class GameManager : MonoBehaviour
             {
                 SceneManager.LoadScene("ShowNumber");
             }
-            else
+            else if (size == 1)
             {
                 SceneManager.LoadScene("Trial");
             }

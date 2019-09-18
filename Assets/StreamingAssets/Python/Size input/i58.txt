@@ -1,0 +1,7 @@
+weights:[21,66,65,11,27,30,89]
+values:[92,33,60,90,30,15,27]
+capacity:135
+profit:222
+problemID:53-0.44-0.64
+instanceType:low_prop
+solution:1

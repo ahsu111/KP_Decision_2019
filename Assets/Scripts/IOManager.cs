@@ -173,13 +173,22 @@ public class IOManager : MonoBehaviour
         GameManager.timeReward = int.Parse(timeRewardS);
 
         GameManager.decision = int.Parse(decisionS);
-        GameManager.cost = int.Parse(costS);
-        GameManager.RandNumDigits = int.Parse(cost_digitsS);
-        GameManager.reward = int.Parse(rewardS);
+
+        GameManager.size = int.Parse(sizeS);
+        if (GameManager.size != 1)
+        {
+            GameManager.reward = int.Parse(rewardS);
+            if (GameManager.reward != 1)
+            {
+                GameManager.cost = int.Parse(costS);
+                GameManager.RandNumDigits = int.Parse(cost_digitsS);
+            }
+        }
         //Debug.Log(reward_amountS.Substring(1, reward_amountS.Length - 2));
+
+        // things common to all three variants
         GameManager.reward_amount = Array.ConvertAll(reward_amountS.Substring(1,
             reward_amountS.Length - 2).Split(','), Double.Parse);
-        GameManager.size = int.Parse(sizeS);
         GameManager.numberOfTrials = int.Parse(numberOfTrialsS);
         GameManager.numberOfBlocks = int.Parse(numberOfBlocksS);
         GameManager.numberOfInstances = int.Parse(numberOfInstancesS);
