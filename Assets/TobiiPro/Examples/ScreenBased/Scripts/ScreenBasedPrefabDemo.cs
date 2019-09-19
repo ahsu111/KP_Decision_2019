@@ -48,10 +48,10 @@ namespace Tobii.Research.Unity.Examples
             }
 
             // We are expecting to have all objects.
-            if (!_eyeTracker || !_gazeTrail || !_calibration || !_saveData || !_trackBoxGuide)
-            {
-                return;
-            }
+            //if (!_eyeTracker || !_gazeTrail || !_calibration || !_saveData || !_trackBoxGuide)
+            //{
+            //    return;
+            //}
 
             // Thin out updates a bit.
             if (Time.frameCount % 6 != 0)
