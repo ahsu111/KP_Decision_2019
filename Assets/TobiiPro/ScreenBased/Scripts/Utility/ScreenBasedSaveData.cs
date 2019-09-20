@@ -98,7 +98,7 @@ namespace Tobii.Research.Unity
             }
 
             var data = _eyeTracker.NextData;
-            while (true)//data != default(IGazeData))
+            while (data != default(IGazeData))
             {
                 WriteGazeData(data);
                 data = _eyeTracker.NextData;
@@ -154,9 +154,9 @@ namespace Tobii.Research.Unity
             if (_saveUnityData)
             {
                 _file.WriteAttributeString("TimeStamp", gazeData.TimeStamp.ToString());
-                _file.WriteAttributeString("TrialNumber", GameManager.TotalTrials.ToString());
+                //_file.WriteAttributeString("TrialNumber", GameManager.TotalTrials.ToString());
 
-                _file.WriteAttributeString("LatestHitObject", _gazeTrail.LatestHitObject != null ? _gazeTrail.LatestHitObject.name : "Nothing");
+                //_file.WriteAttributeString("LatestHitObject", _gazeTrail.LatestHitObject != null ? _gazeTrail.LatestHitObject.name : "Nothing");
                 _file.WriteEye(gazeData.Left, "Left");
                 _file.WriteEye(gazeData.Right, "Right");
                 _file.WriteRay(gazeData.CombinedGazeRayScreen, gazeData.CombinedGazeRayScreenValid, "CombinedGazeRayScreen");
@@ -164,9 +164,9 @@ namespace Tobii.Research.Unity
 
             if (_saveRawData)
             {
-                _file.WriteAttributeString("TrialNumber", GameManager.TotalTrials.ToString());
+                //_file.WriteAttributeString("TrialNumber", GameManager.TotalTrials.ToString());
 
-                _file.WriteAttributeString("LatestHitObject", _gazeTrail.LatestHitObject != null ? _gazeTrail.LatestHitObject.name : "Nothing");
+                //_file.WriteAttributeString("LatestHitObject", _gazeTrail.LatestHitObject != null ? _gazeTrail.LatestHitObject.name : "Nothing");
                 _file.WriteRawGaze(gazeData.OriginalGaze);
             }
 

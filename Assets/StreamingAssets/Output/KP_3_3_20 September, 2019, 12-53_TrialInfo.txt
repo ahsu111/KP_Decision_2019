@@ -1,0 +1,6 @@
+PartcipantID:3
+RandID:3
+InitialTimeStamp:12-53-23-252
+block;trial;answer;correct;timeSpent;itemsSelected;finalvalue;finalweight;ReverseButtons;instanceNumber;pay;xyCoordinates;RandomNumber;SubmittedNumber
+1;1;1;0;17.0293;;0;0;1;6;0;(0,350)(-303.1089,175)(4.286122E-14,-350)(-303.1089,-175)(303.1089,175)(303.1089,-175);25937;1
+1;2;1;0;9.062944;;0;0;1;4;0;(303.1089,175)(303.1089,-175)(4.286122E-14,-350)(-303.1089,175)(-303.1089,-175)(0,350);917;917

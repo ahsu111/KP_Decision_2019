@@ -1,0 +1,6 @@
+PartcipantID:5
+RandID:6
+InitialTimeStamp:13-08-05-988
+block;trial;eventType;elapsedTime
+1;0;ShowNumber;0.04
+1;1;Trial;2.09
