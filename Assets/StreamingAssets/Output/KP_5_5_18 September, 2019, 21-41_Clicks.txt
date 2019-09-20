@@ -1,6 +1,0 @@
-PartcipantID:5
-RandID:5
-InitialTimeStamp:21-41-04-890
-block;trial;itemnumber(100=Reset);Out(0)/In(1)/Reset(2)/Other;time
-1;2;4;1;1.236337
-1;2;1;1;1.95521

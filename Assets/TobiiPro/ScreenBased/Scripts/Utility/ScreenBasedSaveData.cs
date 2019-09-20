@@ -35,6 +35,7 @@ namespace Tobii.Research.Unity
         [Tooltip("This key will start or stop saving data.")]
         private KeyCode _toggleSaveData = KeyCode.None;
 
+        private GazeTrail _gazeTrail;
         /// <summary>
         /// If true, data is saved.
         /// </summary>
@@ -63,6 +64,7 @@ namespace Tobii.Research.Unity
         private void Start()
         {
             _eyeTracker = EyeTracker.Instance;
+            _gazeTrail = GazeTrail.Instance;
         }
 
         private void Update()
@@ -96,7 +98,7 @@ namespace Tobii.Research.Unity
             }
 
             var data = _eyeTracker.NextData;
-            while (data != default(IGazeData))
+            while (true)//data != default(IGazeData))
             {
                 WriteGazeData(data);
                 data = _eyeTracker.NextData;
@@ -152,6 +154,9 @@ namespace Tobii.Research.Unity
             if (_saveUnityData)
             {
                 _file.WriteAttributeString("TimeStamp", gazeData.TimeStamp.ToString());
+                _file.WriteAttributeString("TrialNumber", GameManager.TotalTrials.ToString());
+
+                _file.WriteAttributeString("LatestHitObject", _gazeTrail.LatestHitObject != null ? _gazeTrail.LatestHitObject.name : "Nothing");
                 _file.WriteEye(gazeData.Left, "Left");
                 _file.WriteEye(gazeData.Right, "Right");
                 _file.WriteRay(gazeData.CombinedGazeRayScreen, gazeData.CombinedGazeRayScreenValid, "CombinedGazeRayScreen");
@@ -159,6 +164,9 @@ namespace Tobii.Research.Unity
 
             if (_saveRawData)
             {
+                _file.WriteAttributeString("TrialNumber", GameManager.TotalTrials.ToString());
+
+                _file.WriteAttributeString("LatestHitObject", _gazeTrail.LatestHitObject != null ? _gazeTrail.LatestHitObject.name : "Nothing");
                 _file.WriteRawGaze(gazeData.OriginalGaze);
             }
 

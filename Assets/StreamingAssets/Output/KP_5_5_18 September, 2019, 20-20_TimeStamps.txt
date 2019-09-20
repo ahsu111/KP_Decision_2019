@@ -1,5 +1,0 @@
-PartcipantID:5
-RandID:5
-InitialTimeStamp:20-20-40-289
-block;trial;eventType;elapsedTime
-1;1;Trial;0.086

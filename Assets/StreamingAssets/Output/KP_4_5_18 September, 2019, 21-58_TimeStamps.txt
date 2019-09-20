@@ -1,9 +1,0 @@
-PartcipantID:4
-RandID:5
-InitialTimeStamp:21-58-17-175
-block;trial;eventType;elapsedTime
-1;1;Trial;0.136
-1;1;AnswerScreen;2.127
-1;1;TrialAnswer;2.158
-1;1;EnterNumber;3.199
-1;1;InterTrialRest;44.302
