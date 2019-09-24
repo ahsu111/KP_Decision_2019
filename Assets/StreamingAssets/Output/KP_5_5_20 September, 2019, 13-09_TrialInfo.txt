@@ -1,5 +1,0 @@
-PartcipantID:5
-RandID:5
-InitialTimeStamp:13-09-37-568
-block;trial;answer;correct;timeSpent;itemsSelected;finalvalue;finalweight;ReverseButtons;instanceNumber;pay;xyCoordinates;RandomNumber;SubmittedNumber
-1;1;0;0;14.38431;;0;0;0;21;0;(4.286122E-14,-350)(-303.1089,175)(0,350)(303.1089,-175)(-303.1089,-175)(303.1089,175);927;46

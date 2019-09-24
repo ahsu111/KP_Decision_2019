@@ -121,7 +121,7 @@ public class BoardManager : MonoBehaviour
         GameManager.weightValue = 0;
         itemsvisited = 0;
 
-        canvas = GameObject.Find("Canvas");
+        canvas = GameObject.Find("MainCanvas");
 
         SetKPInstance();
 
@@ -299,11 +299,17 @@ public class BoardManager : MonoBehaviour
         //Instantiates the item and places it.
         GameObject instance = Instantiate(KSItemPrefab, tempPosition,
             Quaternion.identity) as GameObject;
+
+        instance.name = "KP Item (" + itemNumber + ")";
+
         instance.transform.SetParent(canvas.GetComponent<Transform>(), false);
 
         //Gets the subcomponents of the item 
         GameObject bill = instance.transform.Find("Bill").gameObject;
         GameObject weight = instance.transform.Find("Weight").gameObject;
+
+        bill.name = "KP BILL (" + itemNumber + ")";
+        weight.name = "KP WEIGHT (" + itemNumber + ")";
 
         //Sets the Text of the items
         bill.GetComponentInChildren<Text>().text = "$" + vs[itemNumber];

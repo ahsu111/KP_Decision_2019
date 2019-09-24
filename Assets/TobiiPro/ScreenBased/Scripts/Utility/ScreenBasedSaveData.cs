@@ -29,13 +29,15 @@ namespace Tobii.Research.Unity
 
         [SerializeField]
         [Tooltip("Folder in the application root directory where data is saved.")]
-        private string _folder = "Data";
+        private string _folder = "Assets/StreamingAssets/Output/";
 
         [SerializeField]
         [Tooltip("This key will start or stop saving data.")]
         private KeyCode _toggleSaveData = KeyCode.None;
 
         private GazeTrail _gazeTrail;
+
+        private string LatestHit;
         /// <summary>
         /// If true, data is saved.
         /// </summary>
@@ -125,7 +127,7 @@ namespace Tobii.Research.Unity
 
             _fileSettings = new XmlWriterSettings();
             _fileSettings.Indent = true;
-            var fileName = string.Format("data_{0}.xml", System.DateTime.Now.ToString("yyyyMMddTHHmmss"));
+            var fileName = IOManager.Identifier + "_Trial_" + GameManager.TotalTrials + ".xml";
             _file = XmlWriter.Create(System.IO.Path.Combine(_folder, fileName), _fileSettings);
             _file.WriteStartDocument();
             _file.WriteStartElement("Data");
@@ -154,8 +156,14 @@ namespace Tobii.Research.Unity
             if (_saveUnityData)
             {
                 _file.WriteAttributeString("TimeStamp", gazeData.TimeStamp.ToString());
+
+                _file.WriteAttributeString("SystemTime", @System.DateTime.Now.ToString("dd MMMM, yyyy, HH-mm-ss"));
+
                 //_file.WriteAttributeString("TrialNumber", GameManager.TotalTrials.ToString());
 
+
+                LatestHit = _gazeTrail.LatestHitObject != null ? _gazeTrail.LatestHitObject.name : "Nothing";
+                _file.WriteAttributeString("LatestHitObject", LatestHit);
                 //_file.WriteAttributeString("LatestHitObject", _gazeTrail.LatestHitObject != null ? _gazeTrail.LatestHitObject.name : "Nothing");
                 _file.WriteEye(gazeData.Left, "Left");
                 _file.WriteEye(gazeData.Right, "Right");
@@ -166,7 +174,8 @@ namespace Tobii.Research.Unity
             {
                 //_file.WriteAttributeString("TrialNumber", GameManager.TotalTrials.ToString());
 
-                //_file.WriteAttributeString("LatestHitObject", _gazeTrail.LatestHitObject != null ? _gazeTrail.LatestHitObject.name : "Nothing");
+                //_file.WriteAttributeString("TimeStamp", gazeData.TimeStamp.ToString());
+                //_file.WriteAttributeString("LatestHitObject", "Nothing");// _gazeTrail.LatestHitObject != null ? _gazeTrail.LatestHitObject.name : "Nothing");
                 _file.WriteRawGaze(gazeData.OriginalGaze);
             }
 

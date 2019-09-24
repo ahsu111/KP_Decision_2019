@@ -1,8 +1,0 @@
-PartcipantID:7
-RandID:7
-InitialTimeStamp:13-32-51-704
-block;trial;eventType;elapsedTime
-1;0;ShowNumber;0.038
-1;1;Trial;2.09
-1;1;AnswerScreen;27.124
-1;1;TrialAnswer;27.154

@@ -1,4 +1,0 @@
-PartcipantID:7
-RandID:7
-InitialTimeStamp:13-32-51-704
-block;trial;itemnumber(100=Reset);Out(0)/In(1)/Reset(2)/Other;time

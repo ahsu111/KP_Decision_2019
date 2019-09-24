@@ -1,4 +1,0 @@
-PartcipantID:9
-RandID:9
-InitialTimeStamp:13-11-41-344
-block;trial;answer;correct;timeSpent;itemsSelected;finalvalue;finalweight;ReverseButtons;instanceNumber;pay;xyCoordinates;RandomNumber;SubmittedNumber

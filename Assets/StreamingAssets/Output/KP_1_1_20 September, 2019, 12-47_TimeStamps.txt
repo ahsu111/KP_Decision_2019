@@ -1,6 +1,0 @@
-PartcipantID:1
-RandID:1
-InitialTimeStamp:12-47-47-228
-block;trial;eventType;elapsedTime
-1;0;ShowNumber;0.046
-1;1;Trial;2.073
