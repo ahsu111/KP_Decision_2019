@@ -104,6 +104,7 @@ public class BoardManager : MonoBehaviour
         public int ItemNumber;
         public int State;
         public float time;
+        public string ETTime;
     }
 
     // To keep track of the number of items visited
@@ -573,6 +574,7 @@ public class BoardManager : MonoBehaviour
         newclick.ItemNumber = itemToLocate.ItemNumber;
         newclick.State = 1;
         newclick.time = GameManager.timeQuestion - GameManager.tiempo;
+        newclick.ETTime = IOManager.EyeTrackerTime;
         itemClicks.Add(newclick);
     }
 
@@ -586,6 +588,7 @@ public class BoardManager : MonoBehaviour
         newclick.ItemNumber = itemToLocate.ItemNumber;
         newclick.State = 0;
         newclick.time = GameManager.timeQuestion - GameManager.tiempo;
+        newclick.ETTime = IOManager.EyeTrackerTime;
         itemClicks.Add(newclick);
     }
 
@@ -641,6 +644,7 @@ public class BoardManager : MonoBehaviour
             newclick.ItemNumber = 100;
             newclick.State = 2;
             newclick.time = GameManager.timeQuestion - GameManager.tiempo;
+            newclick.ETTime = IOManager.EyeTrackerTime;
             itemClicks.Add(newclick);
         }
     }

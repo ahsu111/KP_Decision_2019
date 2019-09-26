@@ -29,7 +29,7 @@ namespace Tobii.Research.Unity
 
         [SerializeField]
         [Tooltip("Folder in the application root directory where data is saved.")]
-        private string _folder = "Assets/StreamingAssets/Output/";
+        private string _folder = "Data";
 
         [SerializeField]
         [Tooltip("This key will start or stop saving data.")]
@@ -120,15 +120,15 @@ namespace Tobii.Research.Unity
                 return;
             }
 
-            if (!System.IO.Directory.Exists(_folder))
-            {
-                System.IO.Directory.CreateDirectory(_folder);
-            }
+            //if (!System.IO.Directory.Exists(_folder))
+            //{
+            //    System.IO.Directory.CreateDirectory(_folder);
+            //}
 
             _fileSettings = new XmlWriterSettings();
             _fileSettings.Indent = true;
             var fileName = IOManager.Identifier + "_Trial_" + GameManager.TotalTrials + ".xml";
-            _file = XmlWriter.Create(System.IO.Path.Combine(_folder, fileName), _fileSettings);
+            _file = XmlWriter.Create(System.IO.Path.Combine(IOManager.folderPathSave, fileName), _fileSettings);
             _file.WriteStartDocument();
             _file.WriteStartElement("Data");
         }
@@ -157,7 +157,9 @@ namespace Tobii.Research.Unity
             {
                 _file.WriteAttributeString("TimeStamp", gazeData.TimeStamp.ToString());
 
-                _file.WriteAttributeString("SystemTime", @System.DateTime.Now.ToString("dd MMMM, yyyy, HH-mm-ss"));
+                IOManager.EyeTrackerTime = gazeData.TimeStamp.ToString();
+
+                _file.WriteAttributeString("SystemTime", @System.DateTime.Now.ToString()); //"dd MMMM, yyyy, HH-mm-ss"
 
                 //_file.WriteAttributeString("TrialNumber", GameManager.TotalTrials.ToString());
 

@@ -32,6 +32,8 @@ public class IOManager : MonoBehaviour
 
     public static Dictionary<string, string> dict;
 
+
+    public static string EyeTrackerTime;
     /*
 	 * Loads all of the instances to be uploaded form .txt files. Example of input file:
 	 * Name of the file: i3.txt
@@ -276,7 +278,7 @@ public class IOManager : MonoBehaviour
         lines1[0] = "PartcipantID:" + participantID;
         lines1[1] = "RandID:" + randomisationID;
         lines1[2] = "InitialTimeStamp:" + GameManager.initialTimeStamp;
-        lines1[3] = "block;trial;eventType;elapsedTime";
+        lines1[3] = "block;trial;eventType;elapsedTime;EyeTrackerTime";
         using (StreamWriter outputFile = new StreamWriter(folderPathSave +
             Identifier + "TimeStamps.txt", true))
         {
@@ -289,7 +291,7 @@ public class IOManager : MonoBehaviour
         lines2[0] = "PartcipantID:" + participantID;
         lines2[1] = "RandID:" + randomisationID;
         lines2[2] = "InitialTimeStamp:" + GameManager.initialTimeStamp;
-        lines2[3] = "block;trial;itemnumber(100=Reset);Out(0)/In(1)/Reset(2)/Other;time";
+        lines2[3] = "block;trial;itemnumber(100=Reset);Out(0)/In(1)/Reset(2)/Other;time;EyeTrackerTime";
         using (StreamWriter outputFile = new StreamWriter(folderPathSave + Identifier + "Clicks.txt", true))
         {
             WriteToFile(outputFile, lines2);
@@ -345,8 +347,12 @@ public class IOManager : MonoBehaviour
     /// 4=InterBlockScreen;5=EndScreen
     public static void SaveTimeStamp(string eventType)
     {
-        string dataTrialText = GameManager.block + ";" + GameManager.trial + 
-            ";" + eventType + ";" + GameManager.TimeStamp();
+        if (GameManager.escena != "Trial")
+        {
+            EyeTrackerTime = "NA";
+        }
+        string dataTrialText = GameManager.block + ";" + GameManager.trial +
+            ";" + eventType + ";" + GameManager.TimeStamp() + ";" + EyeTrackerTime;
         
         using (StreamWriter outputFile = new StreamWriter(folderPathSave +
             Identifier + "TimeStamps.txt", true))
@@ -368,7 +374,7 @@ public class IOManager : MonoBehaviour
         foreach (BoardManager.Click click in itemClicks)
         {
             lines[i] = GameManager.block + ";" + GameManager.trial + 
-                ";" + click.ItemNumber + ";" + click.State + ";" + click.time;
+                ";" + click.ItemNumber + ";" + click.State + ";" + click.time + ";" + click.ETTime;
             i++;
         }
 
