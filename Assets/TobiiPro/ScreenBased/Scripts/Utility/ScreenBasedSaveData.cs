@@ -127,7 +127,9 @@ namespace Tobii.Research.Unity
 
             _fileSettings = new XmlWriterSettings();
             _fileSettings.Indent = true;
-            var fileName = IOManager.Identifier + "_Trial_" + GameManager.TotalTrials + ".xml";
+            var fileName = IOManager.Identifier + "_" + GameManager.escena + "_" + GameManager.TotalTrials + ".xml";
+
+
             _file = XmlWriter.Create(System.IO.Path.Combine(IOManager.folderPathSave, fileName), _fileSettings);
             _file.WriteStartDocument();
             _file.WriteStartElement("Data");

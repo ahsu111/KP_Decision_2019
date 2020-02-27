@@ -1,5 +1,7 @@
 from random import shuffle
 
+prob_type = input("Enter type of problem, can be 'cost', 'reward' or 'size'")
+
 number_of_unique_instances = 16
 number_of_instance_files = 25
 

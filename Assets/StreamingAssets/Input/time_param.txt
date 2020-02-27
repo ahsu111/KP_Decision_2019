@@ -1,5 +1,8 @@
 timeRest1min:0.3
 timeRest1max:0.3
+SaccadeTimeRest1min:0.5
+SaccadeTimeRest1max:1.5
+SaccadeDotTime:1.0
 timeRest2min:60
 timeRest2max:600
 timeQuestion:25

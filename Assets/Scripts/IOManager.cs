@@ -147,6 +147,9 @@ public class IOManager : MonoBehaviour
         dictionary.TryGetValue("timeRest1max", out string timeRest1maxS);
         dictionary.TryGetValue("timeRest2min", out string timeRest2minS);
         dictionary.TryGetValue("timeRest2max", out string timeRest2maxS);
+        dictionary.TryGetValue("SaccadeTimeRest1min", out string SaccadeTimeRest1minS);
+        dictionary.TryGetValue("SaccadeTimeRest1max", out string SaccadeTimeRest1maxS);
+        dictionary.TryGetValue("SaccadeDotTime", out string SaccadeDotTimeS);
         dictionary.TryGetValue("timeQuestion", out string timeQuestionS);
         dictionary.TryGetValue("timeAnswer", out string timeAnswerS);
         dictionary.TryGetValue("timeCostShow", out string timeCostShowS);
@@ -168,6 +171,9 @@ public class IOManager : MonoBehaviour
         GameManager.timeRest1max = Convert.ToSingle(timeRest1maxS);
         GameManager.timeRest2min = Convert.ToSingle(timeRest2minS);
         GameManager.timeRest2max = Convert.ToSingle(timeRest2maxS);
+        GameManager.SaccadeTimeRest1min = Convert.ToSingle(SaccadeTimeRest1minS);
+        GameManager.SaccadeTimeRest1max = Convert.ToSingle(SaccadeTimeRest1maxS);
+        GameManager.SaccadeDotTime = Convert.ToSingle(SaccadeDotTimeS);
         GameManager.timeQuestion = int.Parse(timeQuestionS);
         GameManager.timeAnswer = int.Parse(timeAnswerS);
         GameManager.timeCostShow = int.Parse(timeCostShowS);

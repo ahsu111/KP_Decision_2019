@@ -62,7 +62,7 @@ public class GameManager : MonoBehaviour
 
     // Current block initialization
     public static int block = 0;
-    
+
     private static bool showTimer;
 
     // Modifiable Variables:
@@ -73,6 +73,11 @@ public class GameManager : MonoBehaviour
     // InterBlock rest time
     public static float timeRest2min;
     public static float timeRest2max;
+
+    // Saccade Test related times. 
+    public static float SaccadeTimeRest1min;
+    public static float SaccadeTimeRest1max;
+    public static float SaccadeDotTime;
 
     // Time given for each trial (The total time the items are shown -With and without the question-)
     public static float timeQuestion;
@@ -117,12 +122,18 @@ public class GameManager : MonoBehaviour
 
     //Number of instance file to be considered. From i1.txt to i_.txt..
     public static int numberOfInstances;
-    
+
     // The order of the Instances to be presented
     public static int[] Randomization;
 
     //The order of the left/right No/Yes randomization
     public static int[] buttonRandomization;
+
+    public static int Saccade_Trial_Number = 0;
+    public static bool show_dot_next = false;
+
+    public static int[] Saccade_X_pos = new int[] { -800, -400, 400, 800 };
+
 
     // To record answer in the decision KP
     // 0 if NO
@@ -307,6 +318,17 @@ public class GameManager : MonoBehaviour
 
             skipButton.SetActive(false);
         }
+        else if (escena == "Saccade")
+        {
+            showTimer = false;
+
+            tiempo = Random.Range(SaccadeTimeRest1min, SaccadeTimeRest1max);
+            totalTime = tiempo;
+
+
+            GameObject.Find("Circle").transform.localPosition = new Vector2(10000, 0);
+            show_dot_next = true;
+        }
         else if (escena == "End")
         {
             showTimer = false;
@@ -338,7 +360,7 @@ public class GameManager : MonoBehaviour
         }
 
         Debug.Log("The random number was: " + RandNum + ", user submitted: " + SubmittedRandNum);
-        
+
         ChangeToNextScene(BoardManager.itemClicks, true);
     }
 
@@ -358,7 +380,7 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (escena != "SetUp" &&  escena != "End" && 
+        if (escena != "SetUp" && escena != "End" &&
             escena != "Payment")
         {
             StartTimer();
@@ -373,11 +395,12 @@ public class GameManager : MonoBehaviour
 		0=setup
         (OPTIONAL 0.5: Reward scene)
         (OPTIONAL 0.5: Cost scene with number)
+        SACCADE 1
 		1= trial game
         2= trial answer
 		3= intertrial rest
         (OPTIONAL 3.5: Cost scene enter memorised number)
-		4= interblock rest
+		4= interblock rest (SACCADE TEST 2 after block #2, TEST 3 after #4, 4 after #6)
 		5= end
         6= payment
 		*/
@@ -385,13 +408,10 @@ public class GameManager : MonoBehaviour
         {
             block++;
             IOManager.LoadGame();
-            if (reward == 1)
+
+            if ((cost == 1 || reward == 1))
             {
-                SceneManager.LoadScene("RewardScene");
-            }
-            else if (cost == 1)
-            {
-                SceneManager.LoadScene("ShowNumber");
+                SceneManager.LoadScene("Saccade");
             }
             else
             {
@@ -438,7 +458,7 @@ public class GameManager : MonoBehaviour
             if (Waited == 0)
             {
                 WAIT_TIME = WAIT_TIME + tiempo;
-                
+
                 if (answer != 2)
                 {
                     IOManager.SaveTimeStamp("ParticipantAnswer");
@@ -450,7 +470,7 @@ public class GameManager : MonoBehaviour
                 Debug.Log(WAIT_TIME + "    " + escena);
                 if (WAIT_TIME > 0)
                 {
-                    if(Waited == 0)
+                    if (Waited == 0)
                     {
                         tiempo = WAIT_TIME;
                         totalTime = WAIT_TIME;
@@ -496,7 +516,7 @@ public class GameManager : MonoBehaviour
             // Calc Perf
             performance = 0;
 
-            if (kpinstances[BoardManager.currInstance].solution == answer && 
+            if (kpinstances[BoardManager.currInstance].solution == answer &&
                 (cost != 1 || RandNum == SubmittedRandNum))
             {
                 performance = 1;
@@ -531,6 +551,28 @@ public class GameManager : MonoBehaviour
                 SceneManager.LoadScene("Trial");
             }
         }
+        else if (escena == "Saccade")
+        {
+            if(block == 1)
+            {
+                if (reward == 1)
+                {
+                    SceneManager.LoadScene("RewardScene");
+                }
+                else if (cost == 1)
+                {
+                    SceneManager.LoadScene("ShowNumber");
+                }
+            }
+            else if (block < numberOfBlocks)
+            {
+                SceneManager.LoadScene("InterBlockRest");
+            }
+            else
+            {
+                SceneManager.LoadScene("End");
+            }
+        }
         else if (escena == "End")
         {
             SceneManager.LoadScene("Payment");
@@ -559,10 +601,18 @@ public class GameManager : MonoBehaviour
         }
         else if (block < numberOfBlocks)
         {
+            if ((block == 2 || block == 4) && (cost == 1 || reward == 1))
+            {
+                SceneManager.LoadScene("Saccade");
+            }
             SceneManager.LoadScene("InterBlockRest");
         }
         else
         {
+            if ((cost == 1 || reward == 1))
+            {
+                SceneManager.LoadScene("Saccade");
+            }
             SceneManager.LoadScene("End");
         }
     }
@@ -638,6 +688,7 @@ public class GameManager : MonoBehaviour
             GameObject.Find("SkipText").GetComponent<Text>().text = "You can skip break after " + (timeRest2min + tiempo - totalTime).ToString("00.0") + " seconds.";
         }
 
+
         // When the time runs out:
         if (tiempo < 0)
         {
@@ -654,7 +705,37 @@ public class GameManager : MonoBehaviour
 
             //    Debug.Log("The random number was: " + RandNum + ", user submitted: " + SubmittedRandNum);
             //}
-            ChangeToNextScene(BoardManager.itemClicks, false);
+
+            if (escena == "Saccade" && Saccade_Trial_Number < 16)
+            {
+                if (show_dot_next)
+                {
+                    Saccade_Trial_Number = Saccade_Trial_Number + 1;
+
+                    tiempo = SaccadeDotTime;
+                    totalTime = tiempo;
+
+                    GameObject.Find("Cross").GetComponent<Text>().text = "";
+
+                    GameObject.Find("Circle").transform.localPosition = new Vector2(Saccade_X_pos[Random.Range(0,4)], 0);
+                    show_dot_next = false;
+                }
+                else
+                {
+                    tiempo = Random.Range(SaccadeTimeRest1min, SaccadeTimeRest1max);
+                    totalTime = tiempo;
+
+                    GameObject.Find("Circle").transform.localPosition = new Vector2(10000, 0);
+                    GameObject.Find("Cross").GetComponent<Text>().text = "+";
+                    // REMEMBER TO RECORD DATA - SACCADE TIME etc
+                    show_dot_next = true;
+                }
+                
+            }
+            else
+            {
+                ChangeToNextScene(BoardManager.itemClicks, false);
+            }
         }
     }
 
@@ -667,7 +748,7 @@ public class GameManager : MonoBehaviour
             {
                 int.TryParse(GameObject.Find("UserNum").GetComponent<Text>().text, out SubmittedRandNum);
             }
-            catch 
+            catch
             {
                 SubmittedRandNum = -1;
             }
