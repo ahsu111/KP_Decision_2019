@@ -1,0 +1,12 @@
+decision:1
+cost:1
+cost_digits:4
+reward_amount:[1.05,1.05,1.05,1.05,1.05,1.05,1.05,1.05,1.05,1.05,1.05,1.05,1.05,1.05,1.05,1.05,1.05,1.05,1.05,1.05,1.05,1.05,1.05,1.05]
+size:0
+numberOfTrials:12
+numberOfBlocks:6
+numberOfInstances:24
+instanceRandomization:[19,9,18,14,22,15,23,10,16,12,24,13,11,17,20,2,7,6,3,8,4,5,1,21]
+numberOfSaccadeTrials:16
+numberOfSaccadeBlocks:4
+SaccadeRandomization:[3,2,1,3,1,1,2,0,2,1,3,2,0,0,3,0,1,2,1,1,3,3,1,3,0,0,0,2,2,0,2,3,2,0,1,1,0,1,2,2,0,3,3,0,1,2,3,3,2,0,2,3,2,1,3,0,1,1,0,3,1,3,2,0]

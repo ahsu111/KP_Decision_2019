@@ -143,61 +143,116 @@ public class IOManager : MonoBehaviour
     private static void AssignVariables(Dictionary<string, string> dictionary)
     {
         //Assigns Parameters
-        dictionary.TryGetValue("timeRest1min", out string timeRest1minS);
-        dictionary.TryGetValue("timeRest1max", out string timeRest1maxS);
-        dictionary.TryGetValue("timeRest2min", out string timeRest2minS);
-        dictionary.TryGetValue("timeRest2max", out string timeRest2maxS);
-        dictionary.TryGetValue("SaccadeTimeRest1min", out string SaccadeTimeRest1minS);
-        dictionary.TryGetValue("SaccadeTimeRest1max", out string SaccadeTimeRest1maxS);
-        dictionary.TryGetValue("SaccadeDotTime", out string SaccadeDotTimeS);
-        dictionary.TryGetValue("timeQuestion", out string timeQuestionS);
-        dictionary.TryGetValue("timeAnswer", out string timeAnswerS);
-        dictionary.TryGetValue("timeCostShow", out string timeCostShowS);
-        dictionary.TryGetValue("timeCostEnter", out string timeCostEnterS);
-        dictionary.TryGetValue("timeReward", out string timeRewardS);
+        if (dictionary.TryGetValue("timeRest1min", out string timeRest1minS))
+        {
+            GameManager.timeRest1min = Convert.ToSingle(timeRest1minS);
+        }
+        if (dictionary.TryGetValue("timeRest1max", out string timeRest1maxS))
+        {
+            GameManager.timeRest1max = Convert.ToSingle(timeRest1maxS);
+        }
+        if (dictionary.TryGetValue("timeRest2min", out string timeRest2minS))
+        {
+            GameManager.timeRest2min = Convert.ToSingle(timeRest2minS);
+        }
+        if (dictionary.TryGetValue("timeRest2max", out string timeRest2maxS))
+        {
+            GameManager.timeRest2max = Convert.ToSingle(timeRest2maxS);
+        }
+        if (dictionary.TryGetValue("SaccadeTimeRest1min", out string SaccadeTimeRest1minS))
+        {
+            GameManager.SaccadeTimeRest1min = Convert.ToSingle(SaccadeTimeRest1minS);
+        }
+        if (dictionary.TryGetValue("SaccadeTimeRest1max", out string SaccadeTimeRest1maxS))
+        {
+            GameManager.SaccadeTimeRest1max = Convert.ToSingle(SaccadeTimeRest1maxS);
+        }
+        if (dictionary.TryGetValue("SaccadeDotTime", out string SaccadeDotTimeS))
+        {
+            GameManager.SaccadeDotTime = Convert.ToSingle(SaccadeDotTimeS);
+        }
+        if (dictionary.TryGetValue("timeQuestion", out string timeQuestionS))
+        {
+            GameManager.timeQuestion = int.Parse(timeQuestionS);
+        }
+        if (dictionary.TryGetValue("timeAnswer", out string timeAnswerS))
+        {
+            GameManager.timeAnswer = int.Parse(timeAnswerS);
+        }
+        if (dictionary.TryGetValue("timeCostShow", out string timeCostShowS))
+        {
+            GameManager.timeCostShow = int.Parse(timeCostShowS);
+        }
+        if (dictionary.TryGetValue("timeCostEnter", out string timeCostEnterS))
+        {
+            GameManager.timeCostEnter = int.Parse(timeCostEnterS);
+        }
+        if (dictionary.TryGetValue("timeReward", out string timeRewardS))
+        {
+            GameManager.timeReward = int.Parse(timeRewardS);
+        }
+        if (dictionary.TryGetValue("decision", out string decisionS))
+        {
+            GameManager.decision = int.Parse(decisionS);
+        }
+        if (dictionary.TryGetValue("cost", out string costS))
+        {
+            if (int.Parse(costS) == 1)
+            {
+                GameManager.size = 0;
+                GameManager.reward = 0;
+                GameManager.cost = 1;
+            }
+        }
+        if (dictionary.TryGetValue("cost_digits", out string cost_digitsS))
+        {
+            GameManager.RandNumDigits = Array.ConvertAll(cost_digitsS.Substring(1,
+                        cost_digitsS.Length - 2).Split(','), int.Parse);
+        }
+        if (dictionary.TryGetValue("reward", out string rewardS))
+        {
+            if (int.Parse(rewardS) == 1)
+            {
+                GameManager.size = 0;
+                GameManager.reward = 1;
+                GameManager.cost = 0;
+            }
+        }
+        if (dictionary.TryGetValue("reward_amount", out string reward_amountS))
+        {
+            GameManager.reward_amount = Array.ConvertAll(reward_amountS.Substring(1, 
+                reward_amountS.Length - 2).Split(','), Double.Parse);
+        }
+        if (dictionary.TryGetValue("size", out string sizeS))
+        {
+            if (int.Parse(sizeS) == 1)
+            {
+                GameManager.size = 1;
+                GameManager.reward = 0;
+                GameManager.cost = 0;
+            }
+        }
+        if (dictionary.TryGetValue("SaccadeRandomization", out string SaccadeRandomizationS))
+        {
+            GameManager.SaccadeRandomization = Array.ConvertAll(SaccadeRandomizationS.Substring(1,
+                SaccadeRandomizationS.Length - 2).Split(','), int.Parse);
+        }
+        if (dictionary.TryGetValue("numberOfSaccadeTrials", out string numberOfSaccadeTrialsS))
+        {
+            GameManager.numberOfSaccadeTrials = int.Parse(numberOfSaccadeTrialsS);
+        }
+        if (dictionary.TryGetValue("numberOfSaccadeBlocks", out string numberOfSaccadeBlocksS))
+        {
+            GameManager.numberOfSaccadeBlocks = int.Parse(numberOfSaccadeBlocksS);
+        }
 
-        dictionary.TryGetValue("decision", out string decisionS);
-        dictionary.TryGetValue("cost", out string costS);
-        dictionary.TryGetValue("cost_digits", out string cost_digitsS);
-        dictionary.TryGetValue("reward", out string rewardS);
-        dictionary.TryGetValue("reward_amount", out string reward_amountS);
-        dictionary.TryGetValue("size", out string sizeS);
         dictionary.TryGetValue("numberOfTrials", out string numberOfTrialsS);
         dictionary.TryGetValue("numberOfBlocks", out string numberOfBlocksS);
         dictionary.TryGetValue("numberOfInstances", out string numberOfInstancesS);
         dictionary.TryGetValue("instanceRandomization", out string instanceRandomizationS);
         
-        GameManager.timeRest1min = Convert.ToSingle(timeRest1minS);
-        GameManager.timeRest1max = Convert.ToSingle(timeRest1maxS);
-        GameManager.timeRest2min = Convert.ToSingle(timeRest2minS);
-        GameManager.timeRest2max = Convert.ToSingle(timeRest2maxS);
-        GameManager.SaccadeTimeRest1min = Convert.ToSingle(SaccadeTimeRest1minS);
-        GameManager.SaccadeTimeRest1max = Convert.ToSingle(SaccadeTimeRest1maxS);
-        GameManager.SaccadeDotTime = Convert.ToSingle(SaccadeDotTimeS);
-        GameManager.timeQuestion = int.Parse(timeQuestionS);
-        GameManager.timeAnswer = int.Parse(timeAnswerS);
-        GameManager.timeCostShow = int.Parse(timeCostShowS);
-        GameManager.timeCostEnter = int.Parse(timeCostEnterS); 
-        GameManager.timeReward = int.Parse(timeRewardS);
-
-        GameManager.decision = int.Parse(decisionS);
-
-        GameManager.size = int.Parse(sizeS);
-        if (GameManager.size != 1)
-        {
-            GameManager.reward = int.Parse(rewardS);
-            if (GameManager.reward != 1)
-            {
-                GameManager.cost = int.Parse(costS);
-                GameManager.RandNumDigits = Array.ConvertAll(cost_digitsS.Substring(1,
-                    cost_digitsS.Length - 2).Split(','), int.Parse);
-            }
-        }
-        //Debug.Log(reward_amountS.Substring(1, reward_amountS.Length - 2));
-
+        
         // things common to all three variants
-        GameManager.reward_amount = Array.ConvertAll(reward_amountS.Substring(1,
-            reward_amountS.Length - 2).Split(','), Double.Parse);
         GameManager.numberOfTrials = int.Parse(numberOfTrialsS);
         GameManager.numberOfBlocks = int.Parse(numberOfBlocksS);
         GameManager.numberOfInstances = int.Parse(numberOfInstancesS);
@@ -206,7 +261,6 @@ public class IOManager : MonoBehaviour
             Array.ConvertAll(instanceRandomizationS.Substring(1, 
             instanceRandomizationS.Length - 2).Split(','), int.Parse);
 
-        //Debug.Log(instanceRandomizationNo0.Length);
         GameManager.Randomization = new int[instanceRandomizationNo0.Length];
 
         for (int i = 0; i < instanceRandomizationNo0.Length; i++)

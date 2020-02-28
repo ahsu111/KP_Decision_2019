@@ -3,10 +3,10 @@ timeRest1max:0.3
 SaccadeTimeRest1min:0.5
 SaccadeTimeRest1max:1.5
 SaccadeDotTime:1.0
-timeRest2min:60
+timeRest2min:5
 timeRest2max:600
-timeQuestion:25
-timeAnswer:6
+timeQuestion:1
+timeAnswer:1
 timeCostShow:2
 timeCostEnter:6
-timeReward:2
+timeReward:1

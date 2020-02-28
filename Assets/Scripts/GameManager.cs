@@ -130,10 +130,17 @@ public class GameManager : MonoBehaviour
     public static int[] buttonRandomization;
 
     public static int Saccade_Trial_Number = 0;
+    public static int Saccade_Block_Number = 0;
     public static bool show_dot_next = false;
 
     public static int[] Saccade_X_pos = new int[] { -800, -400, 400, 800 };
 
+    // Total number of trials in each block
+    public static int numberOfSaccadeTrials = 0;
+
+    // Total number of blocks
+    public static int numberOfSaccadeBlocks = 0;
+    public static int[] SaccadeRandomization;
 
     // To record answer in the decision KP
     // 0 if NO
@@ -324,6 +331,8 @@ public class GameManager : MonoBehaviour
 
             tiempo = Random.Range(SaccadeTimeRest1min, SaccadeTimeRest1max);
             totalTime = tiempo;
+
+            Saccade_Trial_Number = 0;
 
 
             GameObject.Find("Circle").transform.localPosition = new Vector2(10000, 0);
@@ -553,7 +562,9 @@ public class GameManager : MonoBehaviour
         }
         else if (escena == "Saccade")
         {
-            if(block == 1)
+
+            Saccade_Block_Number++;
+            if (block == 1)
             {
                 if (reward == 1)
                 {
@@ -605,7 +616,10 @@ public class GameManager : MonoBehaviour
             {
                 SceneManager.LoadScene("Saccade");
             }
-            SceneManager.LoadScene("InterBlockRest");
+            else
+            {
+                SceneManager.LoadScene("InterBlockRest");
+            }
         }
         else
         {
@@ -613,7 +627,10 @@ public class GameManager : MonoBehaviour
             {
                 SceneManager.LoadScene("Saccade");
             }
+            else
+            {
             SceneManager.LoadScene("End");
+            }
         }
     }
 
@@ -706,22 +723,34 @@ public class GameManager : MonoBehaviour
             //    Debug.Log("The random number was: " + RandNum + ", user submitted: " + SubmittedRandNum);
             //}
 
-            if (escena == "Saccade" && Saccade_Trial_Number < 16)
+            if (escena == "Saccade" && Saccade_Trial_Number < numberOfSaccadeTrials)
             {
                 if (show_dot_next)
                 {
-                    Saccade_Trial_Number = Saccade_Trial_Number + 1;
 
                     tiempo = SaccadeDotTime;
                     totalTime = tiempo;
 
                     GameObject.Find("Cross").GetComponent<Text>().text = "";
 
-                    GameObject.Find("Circle").transform.localPosition = new Vector2(Saccade_X_pos[Random.Range(0,4)], 0);
+                    if (numberOfSaccadeTrials != 0)
+                    {
+
+                        IOManager.SaveTimeStamp("ShowingSaccadeDot" + SaccadeRandomization[Saccade_Trial_Number + numberOfSaccadeTrials * Saccade_Block_Number].ToString());
+                        GameObject.Find("Circle").transform.localPosition = new Vector2(Saccade_X_pos[SaccadeRandomization[Saccade_Trial_Number + numberOfSaccadeTrials * Saccade_Block_Number]], 0);
+                    }
+                    else
+                    {
+                        Debug.Log("Saccade position not set in input params, generating randomly");
+                        GameObject.Find("Circle").transform.localPosition = new Vector2(Saccade_X_pos[Random.Range(0, 4)], 0);
+                    }
                     show_dot_next = false;
+
+                    Saccade_Trial_Number = Saccade_Trial_Number + 1;
                 }
                 else
                 {
+                    IOManager.SaveTimeStamp("ShowingSaccadeCross");
                     tiempo = Random.Range(SaccadeTimeRest1min, SaccadeTimeRest1max);
                     totalTime = tiempo;
 
