@@ -407,7 +407,7 @@ public class IOManager : MonoBehaviour
     /// 4=InterBlockScreen;5=EndScreen
     public static void SaveTimeStamp(string eventType)
     {
-        if (GameManager.escena != "Trial")
+        if (GameManager.escena != "Trial" && GameManager.escena != "Saccade")
         {
             EyeTrackerTime = "NA";
         }

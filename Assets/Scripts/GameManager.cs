@@ -205,7 +205,7 @@ public class GameManager : MonoBehaviour
         boardScript = gameManager.GetComponent<BoardManager>();
 
         InitGame();
-        if (escena != "SetUp")
+        if (escena != "SetUp" && escena != "Saccade")
         {
             IOManager.SaveTimeStamp(escena);
         }
@@ -329,14 +329,15 @@ public class GameManager : MonoBehaviour
         {
             showTimer = false;
 
-            tiempo = Random.Range(SaccadeTimeRest1min, SaccadeTimeRest1max);
+            tiempo = 0;
+            
             totalTime = tiempo;
+
+            IOManager.SaveTimeStamp("Saccade" + tiempo.ToString());
 
             Saccade_Trial_Number = 0;
 
-
-            GameObject.Find("Circle").transform.localPosition = new Vector2(10000, 0);
-            show_dot_next = true;
+            show_dot_next = false;
         }
         else if (escena == "End")
         {
@@ -612,7 +613,7 @@ public class GameManager : MonoBehaviour
         }
         else if (block < numberOfBlocks)
         {
-            if ((block == 2 || block == 4) && (cost == 1 || reward == 1))
+            if ((cost == 1 || reward == 1)) //(block == 2 || block == 4) && 
             {
                 SceneManager.LoadScene("Saccade");
             }
@@ -727,6 +728,7 @@ public class GameManager : MonoBehaviour
             {
                 if (show_dot_next)
                 {
+                    Saccade_Trial_Number = Saccade_Trial_Number + 1;
 
                     tiempo = SaccadeDotTime;
                     totalTime = tiempo;
@@ -736,8 +738,8 @@ public class GameManager : MonoBehaviour
                     if (numberOfSaccadeTrials != 0)
                     {
 
-                        IOManager.SaveTimeStamp("ShowingSaccadeDot" + SaccadeRandomization[Saccade_Trial_Number + numberOfSaccadeTrials * Saccade_Block_Number].ToString());
-                        GameObject.Find("Circle").transform.localPosition = new Vector2(Saccade_X_pos[SaccadeRandomization[Saccade_Trial_Number + numberOfSaccadeTrials * Saccade_Block_Number]], 0);
+                        IOManager.SaveTimeStamp("ShowingSaccadeDot" + "_Trial" + (Saccade_Trial_Number + numberOfSaccadeTrials * Saccade_Block_Number).ToString() + "_Position" + SaccadeRandomization[Saccade_Trial_Number - 1 + numberOfSaccadeTrials * Saccade_Block_Number].ToString());
+                        GameObject.Find("Circle").transform.localPosition = new Vector2(Saccade_X_pos[SaccadeRandomization[Saccade_Trial_Number - 1 + numberOfSaccadeTrials * Saccade_Block_Number]], 0);
                     }
                     else
                     {
@@ -745,13 +747,13 @@ public class GameManager : MonoBehaviour
                         GameObject.Find("Circle").transform.localPosition = new Vector2(Saccade_X_pos[Random.Range(0, 4)], 0);
                     }
                     show_dot_next = false;
-
-                    Saccade_Trial_Number = Saccade_Trial_Number + 1;
                 }
                 else
                 {
-                    IOManager.SaveTimeStamp("ShowingSaccadeCross");
+                    
                     tiempo = Random.Range(SaccadeTimeRest1min, SaccadeTimeRest1max);
+                    IOManager.SaveTimeStamp("ShowingSaccadeCross_Time" + tiempo.ToString());
+
                     totalTime = tiempo;
 
                     GameObject.Find("Circle").transform.localPosition = new Vector2(10000, 0);

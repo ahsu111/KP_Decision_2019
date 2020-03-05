@@ -206,11 +206,11 @@ namespace Tobii.Research.Unity
         internal static void WriteEye(this XmlWriter file, IGazeDataEye eye, string name)
         {
             file.WriteStartElement(name);
-            file.WriteWithValid("GazeOriginInTrackBoxCoordinates", eye.GazeOriginInTrackBoxCoordinates.ToString(FORMAT_FLOAT), eye.GazeOriginValid);
-            file.WriteWithValid("GazeOriginInUserCoordinates", eye.GazeOriginInUserCoordinates.ToString(FORMAT_FLOAT), eye.GazeOriginValid);
-            file.WriteWithValid("GazePointInUserCoordinates", eye.GazePointInUserCoordinates.ToString(FORMAT_FLOAT), eye.GazePointValid);
+            //file.WriteWithValid("GazeOriginInTrackBoxCoordinates", eye.GazeOriginInTrackBoxCoordinates.ToString(FORMAT_FLOAT), eye.GazeOriginValid);
+            //file.WriteWithValid("GazeOriginInUserCoordinates", eye.GazeOriginInUserCoordinates.ToString(FORMAT_FLOAT), eye.GazeOriginValid);
+            //file.WriteWithValid("GazePointInUserCoordinates", eye.GazePointInUserCoordinates.ToString(FORMAT_FLOAT), eye.GazePointValid);
             file.WriteWithValid("GazePointOnDisplayArea", eye.GazePointOnDisplayArea.ToString(FORMAT_FLOAT), eye.GazePointValid);
-            file.WriteRay(eye.GazeRayScreen, eye.GazePointValid, "GazeRayScreen");
+            //file.WriteRay(eye.GazeRayScreen, eye.GazePointValid, "GazeRayScreen");
             file.WriteWithValid("PupilDiameter", eye.PupilDiameter.ToString(FORMAT_FLOAT), eye.PupilDiameterValid);
             file.WriteEndElement();
         }

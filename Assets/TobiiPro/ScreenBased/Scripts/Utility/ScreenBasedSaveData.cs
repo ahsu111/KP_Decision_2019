@@ -161,17 +161,24 @@ namespace Tobii.Research.Unity
 
                 IOManager.EyeTrackerTime = gazeData.TimeStamp.ToString();
 
-                _file.WriteAttributeString("SystemTime", @System.DateTime.Now.ToString()); //"dd MMMM, yyyy, HH-mm-ss"
+                _file.WriteAttributeString("SystemTime", @System.DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.ffffff")); //"dd MMMM, yyyy, HH-mm-ss"
 
                 //_file.WriteAttributeString("TrialNumber", GameManager.TotalTrials.ToString());
 
 
                 LatestHit = _gazeTrail.LatestHitObject != null ? _gazeTrail.LatestHitObject.name : "Nothing";
                 _file.WriteAttributeString("LatestHitObject", LatestHit);
+
+                if(GameManager.escena == "Saccade" && GameManager.Saccade_Trial_Number != 0)
+                {
+                    _file.WriteAttributeString("ShowingSaccadeDot", (!GameManager.show_dot_next).ToString());
+                    _file.WriteAttributeString("SaccadeDotPosition", GameManager.SaccadeRandomization[GameManager.Saccade_Trial_Number + GameManager.numberOfSaccadeTrials * GameManager.Saccade_Block_Number - 1].ToString());
+
+                }
                 //_file.WriteAttributeString("LatestHitObject", _gazeTrail.LatestHitObject != null ? _gazeTrail.LatestHitObject.name : "Nothing");
                 _file.WriteEye(gazeData.Left, "Left");
                 _file.WriteEye(gazeData.Right, "Right");
-                _file.WriteRay(gazeData.CombinedGazeRayScreen, gazeData.CombinedGazeRayScreenValid, "CombinedGazeRayScreen");
+                //_file.WriteRay(gazeData.CombinedGazeRayScreen, gazeData.CombinedGazeRayScreenValid, "CombinedGazeRayScreen");
             }
 
             if (_saveRawData)
