@@ -11,6 +11,10 @@ import datetime
 import csv
 
 
+clip_before = True
+clip_after = True
+
+
 #shimmer_name = input("Please input the full name of the Shimmer output (e.g. EVCET20_test_Session1_Shimmer_7619_Calibrated_SD): ")
 shimmer_name = "March20_Session2_Shimmer_7619_Calibrated_SD"
 #file_prefix = input("Please input the Tobii output prefix (e.g. KP_ah01_1_12 March, 2020, 10-50): ")
@@ -22,7 +26,7 @@ root = tree.getroot()
 
 
 
-f = open('{}_combined_output.csv'.format(file_prefix), 'w')
+f = open('{}_combined_output.csv'.format(file_prefix), 'w', newline='')
 
 
 data = []
@@ -65,6 +69,7 @@ for att in root.findall('GazeData'):
     break
 
 # write all the shimmer data that occur before the first Tobii data
+
 while True:
     curr_shimmer = data[0]
     curr_time = float(curr_shimmer[0])
@@ -72,13 +77,13 @@ while True:
     #print(curr_time, " ", first_Tobii_time)
     if (curr_time < first_Tobii_time):
         row = [float(i) for i in curr_shimmer[:-1]]
-
-        csvwriter.writerow(row)
+        if (not clip_before):
+            csvwriter.writerow(row)
 
         del data[0]
     else:
         break
-    
+
 # Write Tobii data first, then find the first Shimmer data
 for att in root.findall('GazeData'):
     attr_main = att.attrib
@@ -98,7 +103,7 @@ for att in root.findall('GazeData'):
     row = [float(i) for i in curr_shimmer[:-1]]
 
     if (curr_time < UTC_time):
-        row = prev_row
+        row = prev_row[:5]
         
         del data[0]
     else:
@@ -163,20 +168,20 @@ for att in root.findall('GazeData'):
 
 
 # write all the shimmer data that occur AFTER the first Tobii data
+
 while True:
     try:
         curr_shimmer = data[0]
         curr_time = float(curr_shimmer[0])
     
         row = [float(i) for i in curr_shimmer[:-1]]
-
-        csvwriter.writerow(row)
+        if(not clip_after):
+            csvwriter.writerow(row)
 
         del data[0]
     except:
         break
 
 
-    
 f.close()
 
