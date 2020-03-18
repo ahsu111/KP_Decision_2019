@@ -6,7 +6,8 @@ number_of_unique_instances = 24
 number_of_instance_files = 50
 
 saccade_trials_per_block = 16
-Saccade_blocks = 4
+Saccade_blocks = 7
+
 if prob_type == "cost":
     reward_level = [1.05]
     
@@ -82,7 +83,7 @@ for j in range(1, number_of_instance_files + 1):
 
     if prob_type == "cost" or prob_type == "reward":
         f.write("numberOfSaccadeTrials:%d\n" % saccade_trials_per_block)
-        f.write("numberOfSaccadeBlocks:4\n")
+        f.write("numberOfSaccadeBlocks:7\n")
 
         Saccade_randomisation = []
         for i in range(Saccade_blocks):

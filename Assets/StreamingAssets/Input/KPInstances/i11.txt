@@ -1,7 +1,7 @@
-weights:[21,40,23,45,38,4]
-values:[15,13,34,25,32,2]
-capacity:70
-profit:73
-problemID:33-0.41-0.61
+weights:[14,21,2,37,49,39,43]
+values:[34,1,24,31,17,40,19]
+capacity:84
+profit:102
+problemID:228-0.41-0.62
 region:phaseT
 solution:0

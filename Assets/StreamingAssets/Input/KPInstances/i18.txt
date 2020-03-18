@@ -1,7 +1,7 @@
-weights:[20,34,16,22,8,17]
-values:[14,33,40,7,37,30]
-capacity:52
-profit:98
-problemID:179-0.45-0.61
-region:phaseT
+weights:[37,28,8,11,48,45,23]
+values:[7,29,31,29,34,9,34]
+capacity:82
+profit:69
+problemID:115-0.41-0.4
+region:underconstrained
 solution:1

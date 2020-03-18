@@ -133,7 +133,7 @@ public class GameManager : MonoBehaviour
     public static int Saccade_Block_Number = 0;
     public static bool show_dot_next = false;
 
-    public static int[] Saccade_X_pos = new int[] { -800, -400, 400, 800 };
+    public static float[] Saccade_X_pos = new float[] { -553.20f, -276.60f, 276.60f, 553.20f };
 
     // Total number of trials in each block
     public static int numberOfSaccadeTrials = 0;
@@ -314,7 +314,11 @@ public class GameManager : MonoBehaviour
         else if (escena == "InterBlockRest")
         {
             trial = 0;
-            block++;
+            if (!(cost == 1 || reward == 1))
+            {
+                block++;
+
+            }
             showTimer = true;
             tiempo = timeRest2max;
             totalTime = tiempo;
@@ -416,8 +420,13 @@ public class GameManager : MonoBehaviour
 		*/
         if (escena == "SetUp")
         {
-            block++;
+
             IOManager.LoadGame();
+
+            if (!(cost == 1 || reward == 1))
+            {
+                block++;
+            }
 
             if ((cost == 1 || reward == 1))
             {
@@ -565,8 +574,9 @@ public class GameManager : MonoBehaviour
         {
 
             Saccade_Block_Number++;
-            if (block == 1)
+            if (block == 0)
             {
+                block++;
                 if (reward == 1)
                 {
                     SceneManager.LoadScene("RewardScene");
@@ -578,6 +588,7 @@ public class GameManager : MonoBehaviour
             }
             else if (block < numberOfBlocks)
             {
+                block++;
                 SceneManager.LoadScene("InterBlockRest");
             }
             else
@@ -624,14 +635,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            if ((cost == 1 || reward == 1))
-            {
-                SceneManager.LoadScene("Saccade");
-            }
-            else
-            {
             SceneManager.LoadScene("End");
-            }
         }
     }
 
