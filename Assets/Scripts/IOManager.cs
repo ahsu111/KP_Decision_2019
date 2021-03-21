@@ -19,7 +19,7 @@ public class IOManager : MonoBehaviour
 
     // Starting string of the output file names
     public static string Identifier;
-    
+
     //Input and Outout Folders with respect to the Application.dataPath;
     public static string inputFolder = "/StreamingAssets/Input/";
     public static string inputFolderKPInstances = "/StreamingAssets/Input/KPInstances/";
@@ -85,9 +85,9 @@ public class IOManager : MonoBehaviour
             dict.TryGetValue("profit", out string profitS);
             dict.TryGetValue("solution", out string solutionS);
 
-            GameManager.kpinstances[k].weights = 
+            GameManager.kpinstances[k].weights =
                 Array.ConvertAll(weightsS.Substring(1, weightsS.Length - 2).Split(','), int.Parse);
-            GameManager.kpinstances[k].values = 
+            GameManager.kpinstances[k].values =
                 Array.ConvertAll(valuesS.Substring(1, valuesS.Length - 2).Split(','), int.Parse);
             GameManager.kpinstances[k].capacity = int.Parse(capacityS);
             GameManager.kpinstances[k].profit = int.Parse(profitS);
@@ -220,7 +220,7 @@ public class IOManager : MonoBehaviour
         }
         if (dictionary.TryGetValue("reward_amount", out string reward_amountS))
         {
-            GameManager.reward_amount = Array.ConvertAll(reward_amountS.Substring(1, 
+            GameManager.reward_amount = Array.ConvertAll(reward_amountS.Substring(1,
                 reward_amountS.Length - 2).Split(','), Double.Parse);
         }
         if (dictionary.TryGetValue("size", out string sizeS))
@@ -246,19 +246,29 @@ public class IOManager : MonoBehaviour
             GameManager.numberOfSaccadeBlocks = int.Parse(numberOfSaccadeBlocksS);
         }
 
+        if (dictionary.TryGetValue("ITI", out string ITI_S))
+        {
+            GameManager.ITI = Array.ConvertAll(ITI_S.Substring(1,
+                ITI_S.Length - 2).Split(','), int.Parse);
+        }
+        if (dictionary.TryGetValue("SaccadeITI", out string SaccadeITI_S))
+        {
+            GameManager.SaccadeITI = Array.ConvertAll(SaccadeITI_S.Substring(1,
+                SaccadeITI_S.Length - 2).Split(','), Double.Parse);
+        }
         dictionary.TryGetValue("numberOfTrials", out string numberOfTrialsS);
         dictionary.TryGetValue("numberOfBlocks", out string numberOfBlocksS);
         dictionary.TryGetValue("numberOfInstances", out string numberOfInstancesS);
         dictionary.TryGetValue("instanceRandomization", out string instanceRandomizationS);
-        
-        
+
+
         // things common to all three variants
         GameManager.numberOfTrials = int.Parse(numberOfTrialsS);
         GameManager.numberOfBlocks = int.Parse(numberOfBlocksS);
         GameManager.numberOfInstances = int.Parse(numberOfInstancesS);
-        
-        int[] instanceRandomizationNo0 = 
-            Array.ConvertAll(instanceRandomizationS.Substring(1, 
+
+        int[] instanceRandomizationNo0 =
+            Array.ConvertAll(instanceRandomizationS.Substring(1,
             instanceRandomizationS.Length - 2).Split(','), int.Parse);
 
         GameManager.Randomization = new int[instanceRandomizationNo0.Length];
@@ -267,11 +277,11 @@ public class IOManager : MonoBehaviour
         {
             GameManager.Randomization[i] = instanceRandomizationNo0[i] - 1;
         }
-        
+
         ////Assigns LayoutParameters
         dictionary.TryGetValue("columns", out string columnsS);
         dictionary.TryGetValue("rows", out string rowsS);
-        
+
         BoardManager.columns = int.Parse(columnsS);
         BoardManager.rows = int.Parse(rowsS);
     }
@@ -297,8 +307,8 @@ public class IOManager : MonoBehaviour
         foreach (GameManager.KPInstance ks in GameManager.kpinstances)
         {
             //With instance type and problem ID
-            lines3[l] = ksn + ";" + ks.capacity + ";" + ks.profit + ";" + 
-                string.Join(",", ks.weights.Select(p => p.ToString()).ToArray()) + 
+            lines3[l] = ksn + ";" + ks.capacity + ";" + ks.profit + ";" +
+                string.Join(",", ks.weights.Select(p => p.ToString()).ToArray()) +
                 ";" + string.Join(",", ks.values.Select(p => p.ToString()).ToArray())
                 + ";" + ks.id + ";" + ks.type + ";" + ks.solution;
             l++;
@@ -321,7 +331,7 @@ public class IOManager : MonoBehaviour
             "finalvalue;finalweight;ReverseButtons;instanceNumber;pay;" +
             "xyCoordinates;";
 
-        if(GameManager.cost == 1)
+        if (GameManager.cost == 1)
         {
             lines[3] = lines[3] + "RandomNumber;" + "SubmittedNumber";
         }
@@ -379,8 +389,8 @@ public class IOManager : MonoBehaviour
         //";xyCoordinates";
 
         // Reverse buttons is 1 if no/yes; 0 if yes/no
-        string dataTrialText = GameManager.block + ";" + GameManager.trial + ";" + answer + ";" + GameManager.performance 
-             + ";"+ timeSpent + ";" + itemsSelected + ";" + GameManager.valueValue + ";" 
+        string dataTrialText = GameManager.block + ";" + GameManager.trial + ";" + answer + ";" + GameManager.performance
+             + ";" + timeSpent + ";" + itemsSelected + ";" + GameManager.valueValue + ";"
             + GameManager.weightValue + ";" + BoardManager.ReverseButtons + ";" + instanceNum + ";" + GameManager.pay + ";"
             + xyCoordinates;
 
@@ -413,7 +423,7 @@ public class IOManager : MonoBehaviour
         }
         string dataTrialText = GameManager.block + ";" + GameManager.trial +
             ";" + eventType + ";" + GameManager.TimeStamp() + ";" + EyeTrackerTime;
-        
+
         using (StreamWriter outputFile = new StreamWriter(folderPathSave +
             Identifier + "TimeStamps.txt", true))
         {
@@ -433,7 +443,7 @@ public class IOManager : MonoBehaviour
 
         foreach (BoardManager.Click click in itemClicks)
         {
-            lines[i] = GameManager.block + ";" + GameManager.trial + 
+            lines[i] = GameManager.block + ";" + GameManager.trial +
                 ";" + click.ItemNumber + ";" + click.State + ";" + click.time + ";" + click.ETTime;
             i++;
         }
@@ -460,12 +470,12 @@ public class IOManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 }

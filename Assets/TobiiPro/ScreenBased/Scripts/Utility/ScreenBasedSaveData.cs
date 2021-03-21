@@ -165,7 +165,6 @@ namespace Tobii.Research.Unity
 
                 //_file.WriteAttributeString("TrialNumber", GameManager.TotalTrials.ToString());
 
-
                 LatestHit = _gazeTrail.LatestHitObject != null ? _gazeTrail.LatestHitObject.name : "Nothing";
                 _file.WriteAttributeString("LatestHitObject", LatestHit);
 
@@ -175,7 +174,7 @@ namespace Tobii.Research.Unity
                     _file.WriteAttributeString("SaccadeDotPosition", GameManager.SaccadeRandomization[GameManager.Saccade_Trial_Number + GameManager.numberOfSaccadeTrials * GameManager.Saccade_Block_Number - 1].ToString());
 
                 }
-                //_file.WriteAttributeString("LatestHitObject", _gazeTrail.LatestHitObject != null ? _gazeTrail.LatestHitObject.name : "Nothing");
+
                 _file.WriteEye(gazeData.Left, "Left");
                 _file.WriteEye(gazeData.Right, "Right");
                 //_file.WriteRay(gazeData.CombinedGazeRayScreen, gazeData.CombinedGazeRayScreenValid, "CombinedGazeRayScreen");

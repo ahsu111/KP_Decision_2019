@@ -1,9 +1,0 @@
-PartcipantID:1
-RandID:1
-InitialTimeStamp:21-35-45-696
-block;trial;eventType;elapsedTime;EyeTrackerTime
-1;0;Saccade0;7.514;
-1;0;ShowingSaccadeCross_Time0.1521068;7.546;
-1;0;ShowingSaccadeDot_Trial1_Position2;7.863;
-1;0;ShowingSaccadeCross_Time0.1516732;10.853;
-1;0;ShowingSaccadeDot_Trial2_Position0;11.054;

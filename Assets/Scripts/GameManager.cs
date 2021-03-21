@@ -142,6 +142,10 @@ public class GameManager : MonoBehaviour
     public static int numberOfSaccadeBlocks = 0;
     public static int[] SaccadeRandomization;
 
+    // ITI (inter trial interval) and Saccade ITI
+    public static int[] ITI;
+    public static double[] SaccadeITI;
+
     // To record answer in the decision KP
     // 0 if NO
     // 1 if YES
@@ -191,6 +195,10 @@ public class GameManager : MonoBehaviour
     // Use this for initialization
     void Awake()
     {
+        // Limit frame rate to 60
+        QualitySettings.vSyncCount = 0;  // VSync must be disabled
+        Application.targetFrameRate = 60;
+
         //Makes the Game manager a Singleton
         if (gameManager == null)
         {
@@ -205,7 +213,7 @@ public class GameManager : MonoBehaviour
         boardScript = gameManager.GetComponent<BoardManager>();
 
         InitGame();
-        if (escena != "SetUp" && escena != "Saccade")
+        if (escena != "SetUp" && escena != "Saccade" && escena != "InterTrialRest")
         {
             IOManager.SaveTimeStamp(escena);
         }
@@ -241,6 +249,9 @@ public class GameManager : MonoBehaviour
         }
         else if (escena == "RewardScene")
         {
+            trial++;
+            TotalTrials = trial + (block - 1) * numberOfTrials;
+
             showTimer = false;
 
             //Debug.Log(reward_amount[0] + "   " + reward_amount[1] + "   " + reward_amount[2] + "   " + reward_amount[3] + "   " + reward_amount[4]);
@@ -255,6 +266,9 @@ public class GameManager : MonoBehaviour
         }
         else if (escena == "ShowNumber")
         {
+            trial++;
+            TotalTrials = trial + (block - 1) * numberOfTrials;
+
             showTimer = false;
 
             RandNum = RandNumDigits[TotalTrials];
@@ -285,8 +299,11 @@ public class GameManager : MonoBehaviour
         }
         else if (escena == "Trial")
         {
-            trial++;
-            TotalTrials = trial + (block - 1) * numberOfTrials;
+            if (!(cost == 1 || reward == 1))
+            {
+                trial++;
+                TotalTrials = trial + (block - 1) * numberOfTrials;
+            }
             showTimer = true;
             WAIT_TIME = 0;
             Waited = 0;
@@ -308,8 +325,20 @@ public class GameManager : MonoBehaviour
         else if (escena == "InterTrialRest")
         {
             showTimer = false;
-            tiempo = Random.Range(timeRest1min, timeRest1max);
+
+            if (ITI.Any())
+            {
+                tiempo = ITI[trial + (block - 1) * numberOfTrials];
+            }
+            else
+            {
+                tiempo = Random.Range(timeRest1min, timeRest1max);
+            }
+
             totalTime = tiempo;
+
+            IOManager.SaveTimeStamp("InterTrialRest_Time" + totalTime.ToString());
+
         }
         else if (escena == "InterBlockRest")
         {
@@ -317,8 +346,8 @@ public class GameManager : MonoBehaviour
             if (!(cost == 1 || reward == 1))
             {
                 block++;
-
             }
+
             showTimer = true;
             tiempo = timeRest2max;
             totalTime = tiempo;
@@ -531,27 +560,31 @@ public class GameManager : MonoBehaviour
         }
         else if (escena == "InterTrialRest")
         {
-            // Save participant answer
-            // Calc Perf
-            performance = 0;
-
-            if (kpinstances[BoardManager.currInstance].solution == answer &&
-                (cost != 1 || RandNum == SubmittedRandNum))
+            if (trial != 0)
             {
-                performance = 1;
+                // Save participant answer
+                // Calc Perf
+                performance = 0;
+
+                if (kpinstances[BoardManager.currInstance].solution == answer &&
+                    (cost != 1 || RandNum == SubmittedRandNum))
+                {
+                    performance = 1;
+                }
+
+                perf.Add(performance);
+
+                pay = reward_amount[TotalTrials - 1] * performance;
+
+                paylist.Add(pay);
+
+                payAmount += pay;
+                Debug.Log("current pay: $" + payAmount);
+
+                IOManager.SaveTrialInfo(answer, ExtractItemsSelected(itemClicks), timeTaken);
+                IOManager.SaveClicks(itemClicks);
+
             }
-
-            perf.Add(performance);
-
-            pay = reward_amount[TotalTrials - 1] * performance;
-
-            paylist.Add(pay);
-
-            payAmount += pay;
-            Debug.Log("current pay: $" + payAmount);
-
-            IOManager.SaveTrialInfo(answer, ExtractItemsSelected(itemClicks), timeTaken);
-            IOManager.SaveClicks(itemClicks);
 
             ChangeToNextTrial();
         }
@@ -559,11 +592,13 @@ public class GameManager : MonoBehaviour
         {
             if (reward == 1)
             {
-                SceneManager.LoadScene("RewardScene");
+                SceneManager.LoadScene("InterTrialRest");
+                //SceneManager.LoadScene("RewardScene");
             }
             else if (cost == 1)
             {
-                SceneManager.LoadScene("ShowNumber");
+                SceneManager.LoadScene("InterTrialRest");
+                //SceneManager.LoadScene("ShowNumber");
             }
             else
             {
@@ -579,11 +614,13 @@ public class GameManager : MonoBehaviour
                 block++;
                 if (reward == 1)
                 {
-                    SceneManager.LoadScene("RewardScene");
+                    SceneManager.LoadScene("InterTrialRest");
+                    //SceneManager.LoadScene("RewardScene");
                 }
                 else if (cost == 1)
                 {
-                    SceneManager.LoadScene("ShowNumber");
+                    SceneManager.LoadScene("InterTrialRest");
+                    //SceneManager.LoadScene("ShowNumber");
                 }
             }
             else if (block < numberOfBlocks)
@@ -624,7 +661,7 @@ public class GameManager : MonoBehaviour
         }
         else if (block < numberOfBlocks)
         {
-            if ((cost == 1 || reward == 1)) //(block == 2 || block == 4) && 
+            if ((block == 2 || block == 4) && (cost == 1 || reward == 1))
             {
                 SceneManager.LoadScene("Saccade");
             }
@@ -635,7 +672,14 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            SceneManager.LoadScene("End");
+            if ((cost == 1 || reward == 1))
+            {
+                SceneManager.LoadScene("Saccade");
+            }
+            else
+            {
+                SceneManager.LoadScene("End");
+            }
         }
     }
 
@@ -754,8 +798,15 @@ public class GameManager : MonoBehaviour
                 }
                 else
                 {
-                    
-                    tiempo = Random.Range(SaccadeTimeRest1min, SaccadeTimeRest1max);
+                    if (SaccadeITI.Any())
+                    {
+                        tiempo = (float) SaccadeITI[(Saccade_Trial_Number + numberOfSaccadeTrials * Saccade_Block_Number)];
+                    }
+                    else
+                    {
+                        tiempo = Random.Range(SaccadeTimeRest1min, SaccadeTimeRest1max);
+                    }
+
                     IOManager.SaveTimeStamp("ShowingSaccadeCross_Time" + tiempo.ToString());
 
                     totalTime = tiempo;
