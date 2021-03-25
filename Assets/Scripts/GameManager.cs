@@ -217,6 +217,10 @@ public class GameManager : MonoBehaviour
         {
             IOManager.SaveTimeStamp(escena);
         }
+        else if (escena == "InterTrialRest")
+        {
+            IOManager.SaveTimeStamp("InterTrialRest_Time" + totalTime.ToString());
+        }
     }
 
 
@@ -256,7 +260,7 @@ public class GameManager : MonoBehaviour
 
             //Debug.Log(reward_amount[0] + "   " + reward_amount[1] + "   " + reward_amount[2] + "   " + reward_amount[3] + "   " + reward_amount[4]);
 
-            GameObject.Find("Text").GetComponent<Text>().text = "You are currently playing for $" + reward_amount[TotalTrials];
+            GameObject.Find("Text").GetComponent<Text>().text = "You are currently playing for $" + reward_amount[TotalTrials - 1];
 
 
             tiempo = timeReward;
@@ -271,7 +275,7 @@ public class GameManager : MonoBehaviour
 
             showTimer = false;
 
-            RandNum = RandNumDigits[TotalTrials];
+            RandNum = RandNumDigits[TotalTrials - 1];
 
             GameObject.Find("Number").GetComponent<Text>().text = "" + RandNum;
 
@@ -328,7 +332,21 @@ public class GameManager : MonoBehaviour
 
             if (ITI.Any())
             {
-                tiempo = ITI[trial + (block - 1) * numberOfTrials];
+                if (trial == numberOfTrials)
+                {
+                    tiempo = 1f;
+                }
+                else
+                {
+                    tiempo = ITI[trial + (block - 1) * numberOfTrials];
+                }
+
+
+                // Uncomment only if testing
+                //if (tiempo > 1f)
+                //{
+                //    tiempo = 1f;
+                //}
             }
             else
             {
@@ -336,17 +354,13 @@ public class GameManager : MonoBehaviour
             }
 
             totalTime = tiempo;
-
-            IOManager.SaveTimeStamp("InterTrialRest_Time" + totalTime.ToString());
-
+            
         }
         else if (escena == "InterBlockRest")
         {
             trial = 0;
-            if (!(cost == 1 || reward == 1))
-            {
-                block++;
-            }
+
+            block++;
 
             showTimer = true;
             tiempo = timeRest2max;
@@ -363,10 +377,10 @@ public class GameManager : MonoBehaviour
             showTimer = false;
 
             tiempo = 0;
-            
+
             totalTime = tiempo;
 
-            IOManager.SaveTimeStamp("Saccade" + tiempo.ToString());
+            IOManager.SaveTimeStamp("Saccade" + TotalTrials.ToString());
 
             Saccade_Trial_Number = 0;
 
@@ -404,7 +418,10 @@ public class GameManager : MonoBehaviour
 
         Debug.Log("The random number was: " + RandNum + ", user submitted: " + SubmittedRandNum);
 
-        ChangeToNextScene(BoardManager.itemClicks, true);
+        if (tiempo > 0)
+        {
+            ChangeToNextScene(BoardManager.itemClicks, true);
+        }
     }
 
     // Function to display user performance (last scene)
@@ -625,7 +642,6 @@ public class GameManager : MonoBehaviour
             }
             else if (block < numberOfBlocks)
             {
-                block++;
                 SceneManager.LoadScene("InterBlockRest");
             }
             else
@@ -800,7 +816,14 @@ public class GameManager : MonoBehaviour
                 {
                     if (SaccadeITI.Any())
                     {
-                        tiempo = (float) SaccadeITI[(Saccade_Trial_Number + numberOfSaccadeTrials * Saccade_Block_Number)];
+                        tiempo = (float)SaccadeITI[(Saccade_Trial_Number)];
+
+
+                        // Uncomment only if testing
+                        //if (tiempo > 0.4f)
+                        //{
+                        //    tiempo = 0.1f;
+                        //}
                     }
                     else
                     {
@@ -816,7 +839,7 @@ public class GameManager : MonoBehaviour
                     // REMEMBER TO RECORD DATA - SACCADE TIME etc
                     show_dot_next = true;
                 }
-                
+
             }
             else
             {
@@ -842,7 +865,8 @@ public class GameManager : MonoBehaviour
             Debug.Log("The random number was: " + RandNum + ", user submitted: " + SubmittedRandNum);
         }
 
-        //Debug.Log("Skip Clicked");
         ChangeToNextScene(BoardManager.itemClicks, true);
+        //Debug.Log("Skip Clicked");
+
     }
 }

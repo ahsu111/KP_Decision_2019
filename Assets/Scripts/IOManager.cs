@@ -32,6 +32,7 @@ public class IOManager : MonoBehaviour
 
     public static Dictionary<string, string> dict;
 
+    public static string prevEvent = "";
 
     public static string EyeTrackerTime;
     /*
@@ -417,18 +418,31 @@ public class IOManager : MonoBehaviour
     /// 4=InterBlockScreen;5=EndScreen
     public static void SaveTimeStamp(string eventType)
     {
-        if (GameManager.escena != "Trial" && GameManager.escena != "Saccade")
+        if (GameManager.escena != "Trial" && GameManager.escena != "Saccade" && GameManager.escena != "InterTrialRest" && GameManager.escena != "ShowNumber")
         {
             EyeTrackerTime = "NA";
         }
+
         string dataTrialText = GameManager.block + ";" + GameManager.trial +
             ";" + eventType + ";" + GameManager.TimeStamp() + ";" + EyeTrackerTime;
+
+
+        if (GameManager.escena == "InterTrialRest")
+        {
+            dataTrialText = GameManager.block + ";" + (GameManager.trial+1) +
+            ";" + eventType + ";" + GameManager.TimeStamp() + ";" + EyeTrackerTime;
+        }
 
         using (StreamWriter outputFile = new StreamWriter(folderPathSave +
             Identifier + "TimeStamps.txt", true))
         {
-            outputFile.WriteLine(dataTrialText);
+            if (prevEvent != "InterTrialRest")
+            {
+                outputFile.WriteLine(dataTrialText);
+            }
         }
+
+        prevEvent = eventType;
     }
 
 
