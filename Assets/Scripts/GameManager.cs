@@ -166,7 +166,7 @@ public class GameManager : MonoBehaviour
 
     // Keep track of total payment
     // Default value is the show up fee
-    public static double payAmount = 8.00;
+    public static double payAmount = 0.00;
 
     // current value
     public static int valueValue;
