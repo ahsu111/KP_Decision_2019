@@ -591,7 +591,9 @@ public class GameManager : MonoBehaviour
 
                 perf.Add(performance);
 
-                pay = reward_amount[TotalTrials - 1] * performance;
+                //pay = reward_amount[TotalTrials - 1] * performance;
+
+                pay = 0.5f * performance;
 
                 paylist.Add(pay);
 

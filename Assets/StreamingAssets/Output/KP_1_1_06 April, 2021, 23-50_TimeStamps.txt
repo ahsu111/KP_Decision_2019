@@ -1,0 +1,16 @@
+PartcipantID:1
+RandID:1
+InitialTimeStamp:23-50-12-537
+block;trial;eventType;elapsedTime;EyeTrackerTime
+0;0;Saccade0;0.577;
+0;0;ShowingSaccadeCross_Time1.011229;0.616;
+0;0;ShowingSaccadeDot_Trial1_Position2;1.517;
+0;0;ShowingSaccadeCross_Time0.6983857;2.518;
+0;0;ShowingSaccadeDot_Trial2_Position2;3.218;
+0;0;ShowingSaccadeCross_Time1.25767;4.218;
+0;0;ShowingSaccadeDot_Trial3_Position2;5.485;
+0;0;ShowingSaccadeCross_Time0.7698333;6.485;
+0;0;ShowingSaccadeDot_Trial4_Position2;7.269;
+0;0;ShowingSaccadeCross_Time1.429343;8.269;
+0;0;ShowingSaccadeDot_Trial5_Position1;9.703;
+0;0;ShowingSaccadeCross_Time1.458845;10.703;

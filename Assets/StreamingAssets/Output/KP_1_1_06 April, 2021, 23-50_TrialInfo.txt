@@ -1,0 +1,4 @@
+PartcipantID:1
+RandID:1
+InitialTimeStamp:23-50-12-537
+block;trial;answer;correct;timeSpent;itemsSelected;finalvalue;finalweight;ReverseButtons;instanceNumber;pay;xyCoordinates;RandomNumber;SubmittedNumber
