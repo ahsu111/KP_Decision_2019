@@ -591,6 +591,8 @@ public class GameManager : MonoBehaviour
 
                 perf.Add(performance);
 
+
+                // Temporarily override payment to 0.5 per trial... normally should change this in param2.
                 //pay = reward_amount[TotalTrials - 1] * performance;
 
                 pay = 0.5f * performance;
