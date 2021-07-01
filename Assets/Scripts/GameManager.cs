@@ -308,6 +308,8 @@ public class GameManager : MonoBehaviour
                 trial++;
                 TotalTrials = trial + (block - 1) * numberOfTrials;
             }
+
+
             showTimer = true;
             WAIT_TIME = 0;
             Waited = 0;
@@ -593,9 +595,12 @@ public class GameManager : MonoBehaviour
 
 
                 // Temporarily override payment to 0.5 per trial... normally should change this in param2.
-                //pay = reward_amount[TotalTrials - 1] * performance;
+                //pay = 0.5f * performance;
 
-                pay = 0.5f * performance;
+
+                pay = reward_amount[TotalTrials - 1] * performance;
+
+
 
                 paylist.Add(pay);
 

@@ -5,8 +5,8 @@ SaccadeTimeRest1max:0.1
 SaccadeDotTime:0.1
 timeRest2min:1
 timeRest2max:60
-timeQuestion:1
-timeAnswer:1
-timeCostShow:1
-timeCostEnter:1
-timeReward:1
+timeQuestion:25
+timeAnswer:5
+timeCostShow:5
+timeCostEnter:5
+timeReward:2

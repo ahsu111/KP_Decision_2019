@@ -551,16 +551,27 @@ public class BoardManager : MonoBehaviour
     // Function to display distance and weight in Unity
     void SetTopRowText()
     {
-        CalcValue();
-        ValueText.text = "Current Value: $" + GameManager.valueValue.ToString();
-
-        CalcWeight();
-        WeightText.text = "Current Weight: " + GameManager.weightValue.ToString() + "kg";
-        if ((GameManager.kpinstances[currInstance].capacity - GameManager.weightValue) >= 0)
+        // Lexin Experiment, no calculator
+        if (!(GameManager.reward == 1))
         {
-            WeightLeft.text = "Excess Capacity: " + (GameManager.kpinstances[currInstance].capacity -
-                GameManager.weightValue).ToString() + "kg";
+            CalcValue();
+            ValueText.text = "Current Value: $" + GameManager.valueValue.ToString();
+
+            CalcWeight();
+            WeightText.text = "Current Weight: " + GameManager.weightValue.ToString() + "kg";
+            if ((GameManager.kpinstances[currInstance].capacity - GameManager.weightValue) >= 0)
+            {
+                WeightLeft.text = "Excess Capacity: " + (GameManager.kpinstances[currInstance].capacity -
+                    GameManager.weightValue).ToString() + "kg";
+            }
         }
+        else
+        {
+            ValueText.gameObject.SetActive(false);
+            WeightText.gameObject.SetActive(false);
+            WeightLeft.text = "Current Reward: $" + GameManager.reward_amount[GameManager.TotalTrials - 1];
+        }
+
     }
 
 
